@@ -121,4 +121,4 @@ The target aesthetic: a friend took this photo with their phone. Not a studio. N
 ---
 
 - Huy: product, architecture
-- Dani: implementation
+- Dani: UI, UX
