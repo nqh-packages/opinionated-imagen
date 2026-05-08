@@ -147,13 +147,29 @@ Runs sync at creation time.
 ## Generation Engine
 
 - Runs on Cloudflare Workers AI.
-- Models:
-  - Text-to-image: `@cf/bytedance/stable-diffusion-xl-lightning` or best available photorealistic model.
-  - Image-to-image: `@cf/runwayml/stable-diffusion-v1-5-inpainting` with identity reference.
-  - Vision / curation: `@cf/google/gemma-4-26b-a4b-it` or `@cf/moonshot-ai/kimi-k2.6` if stronger reasoning needed.
+- Vision / curation: `@cf/google/gemma-4-26b-a4b-it` or `@cf/moonshot-ai/kimi-k2.6` if stronger reasoning needed.
 - Uses Identity Profile (image refs + text descriptions) as conditioning.
 - Uses Style Profile as style conditioning.
 - One confirmed Intention triggers N parallel generation calls, one per variation type. Results assembled into Contact Sheet.
+
+### Model Comparison
+
+I looked at four options on Cloudflare Workers AI: gpt-image-2, seedream-5-lite, imagen-4, and nano-banana-2.
+
+| Model | Multi-image input | Person gen | Output | Price |
+|-------|------------------|------------|--------|-------|
+| **gpt-image-2** | Up to 16 base64 images. Blends subjects + styles + references. | Built-in | Single image, 3 sizes, 4 quality levels | Token-based |
+| **seedream-5-lite** | `image_input[]` for variation, docs show single-image only | Built-in | Multiple images possible, batch gen | $0.035/image |
+| **imagen-4** | Text only | `person_generation` flag: dont_allow / allow_adult / allow_all | Single image | $0.04/image |
+| **nano-banana-2** | Text only | Built-in | Single image, up to 4K | Token-based |
+
+**Why gpt-image-2 first.** It is the only one with true multi-image editing. I can pass Lily's selfie set + style refs + product image + scene reference all in one call as base64 strings. The model blends them into one output. This is exactly what the product needs: "generate Lily wearing Nikes at a basketball court, matching her film grade." No other model accepts multiple reference images.
+
+**seedream-5-lite** might handle multi-reference too — the parameter is an array — but the docs only demo single-image variation. Worth testing later as a cheaper variation layer.
+
+**imagen-4** and **nano-banana-2** are pure text-to-image. No reference inputs. For identity consistency I would need perfect prompt engineering, which this product explicitly avoids.
+
+So v1 starts with gpt-image-2 for everything. Anchor image and variations. I'll revisit seedream-5-lite once I can verify multi-reference actually works.
 
 ## Technology Stack
 
