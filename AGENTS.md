@@ -18,7 +18,7 @@ Read [PRODUCT.md](PRODUCT.md) for full product context and [CONTEXT.md](CONTEXT.
 | Database | Cloudflare D1 |
 | Storage | Cloudflare R2 |
 | AI | Cloudflare Workers AI |
-| Auth | Email magic links |
+| Auth | Email magic links (Cloudflare Email Workers) |
 | Payments | Stripe |
 
 ## Rules
@@ -49,20 +49,48 @@ Key terms from CONTEXT.md:
 - **Pack** — one execution unit (one Intention → one Contact Sheet)
 - **Preset** — JSON-defined template with composition plan
 
+## Runtime Requirements
+
+- **Node `22.12.0`** or higher (Astro v6 requirement)
+- **pnpm** as package manager
+
+## Astro / Vite / Tailwind Versions
+
+| Tool | Version | Notes |
+|------|---------|-------|
+| Astro | v6.3 | Vite 7 under the hood. `import.meta.env.ASSETS_PREFIX` deprecated; use `astro:config/server` if needed. |
+| Vite | v7 | Bundled by Astro. Compatible with current Tailwind v4 + `@tailwindcss/vite`. |
+| Tailwind | v4 | CSS-first config via `@theme` in `src/styles/global.css`. |
+
+### Astro v6 Gotchas
+
+- **Tailwind v4 scoped styles**: Astro 6.2.2 fixed a bug where Tailwind `space-x-*`, `space-y-*`, `divide-*` utilities leaked out of `.astro` component scoped `<style>` blocks. If using those utilities inside components with `scoped`, verify styles don't escape.
+- **SVG images**: Astro no longer rasterizes SVGs by default. Set `image.dangerouslyProcessSVG: true` in `astro.config.mjs` if you need rasterized SVG output.
+- **Zod 4**: Shipps with Astro. Future schema work (content config, form validation) should import `z` from `astro/zod` (not `zod` directly) to stay in sync.
+
+## Backend Architecture
+
+- **Hono lives in `/functions/index.ts` as a standalone Cloudflare Worker.** It is NOT integrated into Astro via `astro/hono` or experimental advanced routing.
+- The frontend talks to the Worker via `fetch('/api/...')` in dev (proxied by Vite) and via the same origin in production.
+- Keep the boundary clean: Astro pages are static shells; Arrow JS islands handle UI state; Hono handles data, auth, payments, and AI generation.
+
 ## Getting Started
 
 ```bash
 # Install dependencies
-npm install
+pnpm install
 
-# Start dev server
-npm run dev
+# Start dev server (Astro + Hono Worker concurrently)
+pnpm dev
 
-# Typecheck
-npm run typecheck
+# Typecheck (both frontend and functions)
+pnpm typecheck
 
 # Build for production
-npm run build
+pnpm build
+
+# Dry-run Worker deploy
+pnpm wrangler deploy --dry-run
 ```
 
 ## Project Structure

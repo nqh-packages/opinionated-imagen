@@ -1,0 +1,20 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Create — Opinionated Imagen">
+  <main class="mx-auto max-w-2xl px-6 py-20">
+    <h1 class="text-3xl font-semibold tracking-tight">Create a pack</h1>
+    <p class="mt-2 text-muted-foreground">
+      Pick a preset or describe what you want. We'll confirm before we burn any GPU.
+    </p>
+
+    <div id="create-app" class="mt-10"></div>
+  </main>
+
+  <script>
+    import { mountCreate } from '../islands/create-app';
+    const el = document.getElementById('create-app');
+    if (el) mountCreate(el);
+  </script>
+</Base>

@@ -1,0 +1,23 @@
+name = "opinionated-imagen"
+main = "functions/index.ts"
+compatibility_date = "2025-04-01"
+compatibility_flags = ["nodejs_compat"]
+
+# D1 database binding
+[[d1_databases]]
+binding = "DB"
+database_name = "opinionated-imagen-db"
+database_id = ""
+
+# R2 bucket binding
+[[r2_buckets]]
+binding = "STORAGE"
+bucket_name = "opinionated-imagen-storage"
+
+# Workers AI binding
+[ai]
+binding = "AI"
+
+# SendEmail binding for magic links
+[[send_email]]
+name = "EMAIL"
