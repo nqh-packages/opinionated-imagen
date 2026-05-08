@@ -103,7 +103,22 @@ npm run build
 }
 ```
 
-## Owners
+## Big Fucking No's
+
+These are product-level visual standards. Non-negotiable.
+
+- **No AI-generated look.** None. If it reads as AI to a casual viewer, it failed. Every output must pass the "is this a photo?" test.
+- **Photorealistic by default.** Every image should look like it came from an iPhone or a mirrorless camera. Natural lens behavior, natural light falloff, natural skin texture.
+- **No perfection.** Skin has pores. Hair has flyaways. Light has uneven color temp. Backgrounds are slightly out of focus, not razor-sharp CGI. Clothing wrinkles. Imperfection is signal.
+- **No uncanny smoothness.** Plastic skin, oversized eyes, symmetrical faces, impossible jawlines — all rejected. The model should generate humans who look real, not catalog models.
+- **No fake depth of field.** Bokeh should look like actual optics, not Gaussian blur layers. Wrong blur shape is a tell.
+- **No composited-on-background feeling.** The subject and the scene must feel like they were in the same physical space. No halo edges, no mismatched shadows, no floating feeling.
+- **No generic stock-photo posing.** The variation plan should produce candid, moment-like shots — not "woman smiling at camera in front of blank wall" energy.
+- **No oversaturation or hyper-clarity.** Film grain is fine. Slight softness is fine. Everything does not need to glow.
+
+The target aesthetic: a friend took this photo with their phone. Not a studio. Not a renderer. A photo.
+
+---
 
 - Huy: product, architecture
 - Dani: implementation
