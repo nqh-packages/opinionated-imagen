@@ -120,5 +120,12 @@ The target aesthetic: a friend took this photo with their phone. Not a studio. N
 
 ---
 
+## Prompting References
+
+- [OpenAI Image Generation Prompting Guide](https://github.com/openai/openai-cookbook/blob/main/examples/multimodal/image-gen-models-prompting-guide.ipynb) — best practices for GPT image models, photorealism patterns, multi-image editing
+- [GPT Image 2 Skill](https://github.com/wuyoscar/gpt_image_2_skill) — curated prompt gallery, agentic skill, CLI tooling for gpt-image-2
+
+## Owners
+
 - Huy: product, architecture
 - Dani: UI, UX
