@@ -37,17 +37,33 @@ Read [PRODUCT.md](PRODUCT.md) for full product context and [CONTEXT.md](CONTEXT.
 
 ## Domain Language
 
-Key terms from CONTEXT.md:
+Key terms from [PRODUCT.md](PRODUCT.md) and [docs/brand-guidelines.md](docs/brand-guidelines.md):
 
-- **Creator** — the user (not "user" or "customer")
-- **Selfie Set** → **Identity Profile**
-- **Style References** → **Style Profile**
-- **Intention** — structured generation plan
-- **Intention Confirmation** — inline-editable natural language preview
-- **One Turn** — single adjustment cycle after confirmation
-- **Contact Sheet** — 8 variations of one scene
-- **Pack** — one execution unit (one Intention → one Contact Sheet)
-- **Preset** — JSON-defined template with composition plan
+| User-Facing | Internal | Notes |
+|------------|----------|-------|
+| **Creator** | — | The user. Never "user" or "customer." |
+| **Selfie Set** | — | Onboarding upload batch for identity. Never "training data." |
+| **Moodboard** | Style References | Photos teaching aesthetic taste. |
+| **Identity Profile** | — | Extracted face/body representation. |
+| **Style Profile** | — | Extracted aesthetic fingerprint. |
+| **Scene** | Preset | Curated setup: setting + composition + variation mix. JSON-defined. |
+| **Drop** | Pack | One execution unit (one Brief → one Edit). |
+| **The Brief** | Intention Confirmation | Inline-editable paragraph preview. |
+| **Process** | Generate | Background batch generation. Never "generate" or "AI." |
+| **The Edit** | Contact Sheet | 8-shot output of one Drop. |
+| **Archive** | Gallery | Saved output library. |
+| **Monthly Access** | Subscription | Recurring: 4 Drops/month. |
+| **Single Drop** | One-off | Single purchase: 1 Drop. |
+| **Intention** | — | Structured generation plan (internal). Never user-facing. |
+| **One Turn** | — | Single adjustment cycle after Brief. |
+
+See [CONTEXT.md](CONTEXT.md) for full relationship definitions and example dialogues.
+
+## Brand & Design
+
+- **Brand guidelines** live at `docs/brand-guidelines.md`. Messaging, voice, and vocabulary are locked decisions. Visual identity (colors, typography, imagery) are provisional — **Dani owns final design system.**
+- See brand guidelines for: forbidden words, tone by context, audience messaging, and visual direction.
+- **Big Fucking No's** (product-level visual standards) remain non-negotiable and live below.
 
 ## Runtime Requirements
 
@@ -105,7 +121,7 @@ pnpm wrangler deploy --dry-run
 /functions         # Cloudflare Workers (Hono API)
 /niches
   /ig-content      # First niche config
-    /presets       # JSON preset files
+    /scenes        # Scene JSON files (user-facing "Scene", internal "Preset")
 ```
 
 ## AI Models (Cloudflare Workers AI)
@@ -114,7 +130,9 @@ pnpm wrangler deploy --dry-run
 - **Curation/Vision**: `google/gemma-4-26b-a4b-it` or `moonshot-ai/kimi-k2.6`
 - **Fallback to test**: `bytedance/seedream-5-lite` — if multi-reference works, cheaper for variations
 
-## Preset Format
+## Scene Format
+
+> User-facing: **Scene**. Internal: **Preset**.
 
 ```json
 {
