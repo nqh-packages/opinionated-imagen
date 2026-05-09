@@ -77,15 +77,21 @@ pnpm dev:astro
     styles/                # Tailwind v4 CSS config (global.css)
 
   functions/               # Hono Cloudflare Worker (backend)
-    index.ts               # App entry — route mounting, bindings
+    index.ts               # App entry — route mounting, bindings, CORS
     tsconfig.json          # Backend TypeScript config (uses @cloudflare/workers-types)
+    middleware/             # Hono middleware
+      auth.ts              # requireAuth — session cookie check, sets userId
     lib/                   # Backend utilities
       diagnostics.ts       # Structured error helpers (no console.log)
       id.ts                # UUID v4 generator
       storage.ts           # R2 S3-compatible client + presigned URL generation
+      email.ts             # Magic link email template builder
+      scenes-data.ts       # Bundled Scene catalog data
     routes/                # Route handlers
+      auth.ts              # POST /api/auth/magic-link, GET /api/auth/verify, GET /api/auth/me, POST /api/auth/logout
       upload.ts            # POST /api/upload/presigned — batch presigned URLs + session creation
       profile.ts           # GET /api/profile/status + POST /api/profile/build — polling + build trigger
+      scenes.ts            # GET /api/scenes — curated Scene catalog
     migrations/            # D1 SQL migrations (applied via wrangler d1 migrations)
     scripts/               # One-shot setup scripts
       setup-lifecycle.ts   # R2 lifecycle rule configuration (7-day TTL on orphan uploads)
@@ -176,10 +182,14 @@ All deployed at `https://opinionated-imagen.nqh.workers.dev`.
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | `/api/health` | Health check |
-| GET | `/api/presets` | List available Scenes |
+| GET | `/api/scenes` | List available Scenes |
 | POST | `/api/upload/presigned` | Generate batch presigned upload URLs to R2 |
 | GET | `/api/profile/status?sessionToken=` | Poll session/profile build status |
 | POST | `/api/profile/build` | Trigger async profile building |
+| POST | `/api/auth/magic-link` | Send magic link email (rate-limited 3/email/hour) |
+| GET | `/api/auth/verify?token=` | Validate magic link token, issue session cookie |
+| GET | `/api/auth/me` | Return authenticated user or 401 |
+| POST | `/api/auth/logout` | Clear session cookie |
 
 All routes return structured JSON. Errors follow the diagnostic schema described under Code Style.
 
@@ -347,12 +357,29 @@ Conventions to follow when adding tests:
 
 ---
 
+## Database Schema (D1)
+
+Tables defined via migrations in `functions/migrations/`:
+
+| Table | Purpose | Key Columns |
+|-------|---------|-------------|
+| `sessions` | Anonymous onboarding sessions | token (PK), status enum, selfie_count, moodboard_count |
+| `uploads` | Uploaded files per session | id (PK), session_token (FK), upload_type, r2_key |
+| `scenes` | Curated Scene catalog (schema only — data sourced from TS module) | id (PK), name, description, tags, base_scene, composition_plan |
+| `users` | Authenticated Creators | id (PK), email (UNIQUE), created_at, last_seen |
+| `magic_links` | One-time magic link tokens | token (PK), email, used flag, expires_at |
+| `sessions_auth` | Auth session cookies | id (PK, cookie value), user_id (FK), expires_at |
+| `magic_link_attempts` | Rate limiting counter | id (PK), email, attempted_at |
+
+---
+
 ## Additional Notes
 
 - Node.js >= 22.12 required (Astro v6 constraint).
 - `wrangler.toml` is gitignored (contains database IDs). Template any changes in AGENTS.md or deploy scripts.
 - The project root `.dev.vars` stores local-only R2 credentials (gitignored).
-- Active sessions are anonymous (no auth). Future auth via email magic links links sessions to Creator accounts.
+- Auth: email magic links deferred to Process Drop. Session cookie (Secure; HttpOnly; SameSite=Strict, 30-day expiry). Cookie-based auth coexists with anonymous session tokens (localStorage). Future work: link anonymous sessions to Creator accounts on first auth.
+- Email sender domain `auth@opinionated-imagen.com` must be verified in Cloudflare Email Routing before magic links work in production.
 - **Brand**: All products carry a "designed by brandr" footer linking to bybrandr.com. Never use "AI" language.
 - **Visual standards**: No AI-generated look. Photorealistic only. No perfection (skin texture, flyaways, natural lighting). No fake depth of field.
 - **Production URL**: `https://opinionated-imagen.nqh.workers.dev`
