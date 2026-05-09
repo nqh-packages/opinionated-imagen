@@ -15,6 +15,7 @@ type Bindings = {
   R2_SECRET_ACCESS_KEY: string;
   R2_SESSION_TOKEN?: string;
   ACCOUNT_ID: string;
+  MAIL_FROM?: string;
 };
 
 type Variables = {

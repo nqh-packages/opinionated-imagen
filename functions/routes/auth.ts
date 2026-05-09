@@ -12,6 +12,7 @@ import { badRequest, serviceUnavailable } from '../lib/diagnostics';
 type Bindings = {
   DB: D1Database;
   EMAIL: SendEmail;
+  MAIL_FROM?: string;
 };
 
 type Variables = {
@@ -78,8 +79,9 @@ authApp.post('/magic-link', async (c) => {
 
     // Send email
     const emailContent = buildMagicLinkEmail(verifyUrl);
+    const mailFrom = c.env.MAIL_FROM || 'auth@opinionated-imagen.com';
     await c.env.EMAIL.send({
-      from: 'auth@opinionated-imagen.com',
+      from: mailFrom,
       to: email,
       subject: emailContent.subject,
       html: emailContent.html,
