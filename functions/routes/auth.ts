@@ -79,7 +79,7 @@ authApp.post('/magic-link', async (c) => {
 
     // Send email
     const emailContent = buildMagicLinkEmail(verifyUrl);
-    const mailFrom = c.env.MAIL_FROM || 'auth@opinionated-imagen.com';
+    const mailFrom = c.env.MAIL_FROM || 'auth@bybrandr.com';
     await c.env.EMAIL.send({
       from: mailFrom,
       to: email,

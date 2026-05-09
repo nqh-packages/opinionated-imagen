@@ -379,7 +379,7 @@ Tables defined via migrations in `functions/migrations/`:
 - `wrangler.toml` is gitignored (contains database IDs). Template any changes in AGENTS.md or deploy scripts.
 - The project root `.dev.vars` stores local-only R2 credentials (gitignored).
 - Auth: email magic links deferred to Process Drop. Session cookie (Secure; HttpOnly; SameSite=Strict, 30-day expiry). Cookie-based auth coexists with anonymous session tokens (localStorage). Future work: link anonymous sessions to Creator accounts on first auth.
-- Email sender domain `auth@opinionated-imagen.com` must be verified in Cloudflare Email Routing before magic links work in production.
+- Magic link sender: `auth@bybrandr.com` (configurable via `MAIL_FROM` env var). Requires the sender domain to be verified in Cloudflare Email Routing.
 - **Brand**: All products carry a "designed by brandr" footer linking to bybrandr.com. Never use "AI" language.
 - **Visual standards**: No AI-generated look. Photorealistic only. No perfection (skin texture, flyaways, natural lighting). No fake depth of field.
 - **Production URL**: `https://opinionated-imagen.nqh.workers.dev`

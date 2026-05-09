@@ -12,7 +12,7 @@ export interface EmailContent {
  * Builds the magic link email content.
  * @param verifyUrl - Full URL to the verify endpoint (e.g., https://opinionated-imagen.nqh.workers.dev/auth/verify?token=xxx)
  */
-export function buildMagicLinkEmail(verifyUrl: string): EmailContent {
+export function buildMagicLinkEmail(verifyUrl: string, senderName = 'Opinionated Imagen'): EmailContent {
   return {
     subject: 'Sign in to Opinionated Imagen',
     html: `<!DOCTYPE html>
@@ -21,11 +21,11 @@ export function buildMagicLinkEmail(verifyUrl: string): EmailContent {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin:0;padding:0;background:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:40px 16px;">
+<body style="margin:0;padding:0;background:#faf9f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#faf9f7;padding:40px 16px;">
     <tr>
       <td align="center">
-        <table role="presentation" width="100%" style="max-width:420px;background:#fff;border-radius:12px;padding:40px 32px;text-align:center;">
+        <table role="presentation" width="100%" style="max-width:420px;background:#fff;border-radius:16px;padding:48px 32px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
           <tr>
             <td>
               <h1 style="margin:0 0 8px;font-size:22px;font-weight:600;color:#1a1a1a;letter-spacing:-0.3px;">Opinionated Imagen</h1>
