@@ -34,7 +34,8 @@ Your Worker
 Steps:
 1. Enable Workers AI on your Cloudflare account
 2. Create an AI Gateway in the dashboard: `AI → AI Gateway → Create Gateway`
-3. Pass `{ gateway: { id: 'your-gateway-name' } }` in `env.AI.run()` calls
+3. Name it `opinionated-imagen-{niche}` (e.g., `opinionated-imagen-ig` for the Instagram niche, `opinionated-imagen-headshots` for LinkedIn headshots)
+4. Pass `{ gateway: { id: 'opinionated-imagen-ig' } }` in `env.AI.run()` calls for proxied models
 
 The gateway name enables: request logging, analytics, caching, rate limiting, and fallback routing.
 
@@ -79,7 +80,7 @@ const response = await env.AI.run(
     quality: 'medium',
     size: '1024x1536',
   },
-  { gateway: { id: 'default' } }  // AI Gateway required for proxied models
+  { gateway: { id: 'opinionated-imagen-ig' } }  // AI Gateway required for proxied models
 );
 ```
 
