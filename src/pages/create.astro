@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import CreateApp from '../islands/CreateApp';
 ---
 
 <Base title="Create — Opinionated Imagen">
@@ -9,12 +10,8 @@ import Base from '../layouts/Base.astro';
       Pick a preset or describe what you want. We'll confirm before we burn any GPU.
     </p>
 
-    <div id="create-app" class="mt-10"></div>
+    <div class="mt-10">
+      <CreateApp client:load />
+    </div>
   </main>
-
-  <script>
-    import { mountCreate } from '../islands/create-app';
-    const el = document.getElementById('create-app');
-    if (el) mountCreate(el);
-  </script>
 </Base>

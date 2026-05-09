@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import GalleryApp from '../islands/GalleryApp';
 ---
 
 <Base title="Gallery — Opinionated Imagen">
@@ -7,12 +8,8 @@ import Base from '../layouts/Base.astro';
     <h1 class="text-3xl font-semibold tracking-tight">Your gallery</h1>
     <p class="mt-2 text-muted-foreground">Saved shots from your contact sheets.</p>
 
-    <div id="gallery-app" class="mt-10"></div>
+    <div class="mt-10">
+      <GalleryApp client:load />
+    </div>
   </main>
-
-  <script>
-    import { mountGallery } from '../islands/gallery-app';
-    const el = document.getElementById('gallery-app');
-    if (el) mountGallery(el);
-  </script>
 </Base>

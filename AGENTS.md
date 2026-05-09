@@ -11,8 +11,9 @@ Read [PRODUCT.md](PRODUCT.md) for full product context and [CONTEXT.md](CONTEXT.
 | Layer | Tool |
 |-------|------|
 | Static pages | Astro |
-| Interactive UI | Arrow JS (`reactive()`, `html`, `component`) |
+| App UI | React |
 | Styling | Tailwind CSS |
+| LLM-generated interactions | Arrow JS Sandbox (`@arrow-js/sandbox`) |
 | Build | Vite (from `create-arrow-js@latest`) |
 | Backend | Cloudflare Workers (Hono) |
 | Database | Cloudflare D1 |
@@ -23,7 +24,7 @@ Read [PRODUCT.md](PRODUCT.md) for full product context and [CONTEXT.md](CONTEXT.
 
 ## Rules
 
-- **No React** except where absolutely unavoidable. Interactive surfaces are Arrow JS.
+- **React for all interactive app surfaces.** Arrow JS is reserved for LLM-generated sandboxed code only.
 - **No pre-built component libraries** (no shadcn, no Radix). Build from DOM primitives.
 - **One person per generation.** Multi-person is out of scope.
 - **One turn** of tweaking in the Intention Confirmation step. No prolonged dialogue.
@@ -31,7 +32,8 @@ Read [PRODUCT.md](PRODUCT.md) for full product context and [CONTEXT.md](CONTEXT.
 ## Architecture Decisions
 
 - **Astro** handles marketing/landing/static pages.
-- **Arrow JS** mounts as islands for the interactive app: onboarding, intention confirmation, gallery, dashboard.
+- **React** renders all interactive app surfaces: onboarding, intention confirmation, gallery, dashboard.
+- **Arrow JS Sandbox** runs LLM-generated code in isolation for dynamic interactions injected into React surfaces.
 - **gpt-image-2** is the generation model for v1. It's the only Workers AI model that supports multi-image editing (up to 16 base64 refs blended into one output).
 - Identity consistency comes from passing the Selfie Set as reference images in the generation call, not from fine-tuning or LoRAs.
 
@@ -88,7 +90,7 @@ See [CONTEXT.md](CONTEXT.md) for full relationship definitions and example dialo
 
 - **Hono lives in `/functions/index.ts` as a standalone Cloudflare Worker.** It is NOT integrated into Astro via `astro/hono` or experimental advanced routing.
 - The frontend talks to the Worker via `fetch('/api/...')` in dev (proxied by Vite) and via the same origin in production.
-- Keep the boundary clean: Astro pages are static shells; Arrow JS islands handle UI state; Hono handles data, auth, payments, and AI generation.
+- Keep the boundary clean: Astro pages are static shells; React islands handle UI state; Hono handles data, auth, payments, and AI generation.
 
 ## Getting Started
 
@@ -113,9 +115,9 @@ pnpm wrangler deploy --dry-run
 
 ```
 /src
-  /components      # Arrow JS components
+  /components      # React components
   /pages           # Astro pages (static)
-  /islands         # Arrow JS islands mounted in Astro
+  /islands         # React islands mounted in Astro
   /lib             # Shared utilities
   /styles          # Tailwind + global CSS
 /functions         # Cloudflare Workers (Hono API)

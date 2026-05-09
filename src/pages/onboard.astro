@@ -1,20 +1,17 @@
 ---
 import Base from '../layouts/Base.astro';
+import OnboardApp from '../islands/OnboardApp';
 ---
 
 <Base title="Onboard — Opinionated Imagen">
-  <main class="mx-auto max-w-xl px-6 py-20">
-    <h1 class="text-3xl font-semibold tracking-tight">Build your profile</h1>
-    <p class="mt-2 text-muted-foreground">
+  <main class="mx-auto max-w-xl px-5 pt-8 pb-16 sm:px-6 sm:pt-16 sm:pb-20">
+    <h1 class="text-2xl sm:text-3xl font-semibold tracking-tight">Build your profile</h1>
+    <p class="mt-1.5 text-sm sm:text-base text-muted-foreground">
       Upload your selfies and style references so we know what you look like and what you like.
     </p>
 
-    <div id="onboard-app" class="mt-10"></div>
+    <div class="mt-8 sm:mt-10">
+      <OnboardApp client:load />
+    </div>
   </main>
-
-  <script>
-    import { mountOnboard } from '../islands/onboard-app';
-    const el = document.getElementById('onboard-app');
-    if (el) mountOnboard(el);
-  </script>
 </Base>
