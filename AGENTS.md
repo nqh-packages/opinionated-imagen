@@ -1,58 +1,126 @@
 # AGENTS.md
 
-## Project Overview
+## Project
 
-Opinionated Imagen — niche AI image generation framework. First niche: Instagram content for individual creators. The product is a premium creative service, not an "AI tool." Never use "AI" or "training" language in any surface.
+Opinionated Imagen — one codebase, many niche market products in AI image generation.
+
+Read [PRODUCT.md](PRODUCT.md) for the product vision. Read [CONTEXT.md](CONTEXT.md) for the domain language. Read [MODELS.md](MODELS.md) for AI model reference.
 
 ### Stack
 
-| Layer | Tool |
-|-------|------|
-| Static pages | Astro v6.3 (Vite 8, Tailwind v4) |
+| Layer | Technology |
+|-------|-----------|
+| Static pages | Astro v6.3 (Vite 8, Tailwind v4 via PostCSS) |
 | App UI | React 19 + shadcn/ui (`@base-ui/react` primitives) |
-| Styling | Tailwind CSS v4 via PostCSS (`@tailwindcss/postcss`) |
-| LLM-generated sandboxed code | Arrow JS Sandbox (`@arrow-js/sandbox`) |
-| Backend API | Cloudflare Workers (Hono v4) |
+| Styling | Tailwind CSS v4 via `@tailwindcss/postcss` |
+| Backend | Cloudflare Workers (Hono v4) |
 | Database | Cloudflare D1 (SQLite) |
-| Object Storage | Cloudflare R2 (S3-compatible presigned URLs) |
-| AI inference | Cloudflare Workers AI (gpt-image-2 for generation) |
+| Object Storage | Cloudflare R2 (S3 presigned URLs via `@aws-sdk/client-s3`) |
+| AI Generation | Cloudflare AI Gateway (proxied) — `openai/gpt-image-2` |
+| AI Vision/Curation | Cloudflare Workers AI (hosted) — `google/gemma-4-26b-a4b-it`, `moonshot-ai/kimi-k2.6` |
 | Auth | Email magic links (Cloudflare Email Workers) |
 | Payments | Stripe |
+| LLM-generated sandboxed code | Arrow JS Sandbox (`@arrow-js/sandbox`) — for LLM-generated preview snippets only |
 
 ### Architecture
 
 Single Cloudflare Worker serves both the frontend and API:
 
-1. **Astro** (`astro dev`) — builds static pages + mounts React islands on interactive surfaces. Listens on port 4321 in dev. API calls are proxied to the Worker via Vite's `server.proxy` in `astro.config.mjs`.
-2. **Hono Worker** (`wrangler dev`) — Cloudflare Worker at `functions/index.ts` handling all API routes. Serves static Astro assets via `ASSETS` binding in production.
+1. **Astro** (`astro dev`, port 4321) — builds static pages + mounts React islands on interactive surfaces. API calls proxied to Worker via `astro.config.mjs`.
+2. **Hono Worker** (`wrangler dev`, port 8787) — all API routes. Serves `dist/` as static assets via `ASSETS` binding in production.
 
-In dev, the frontend runs separately (port 4321) and proxies `/api/*` to the Worker (port 8787). In production, both live on the same origin — the Worker serves `dist/` as static assets and handles `/api/*` routes.
+In dev, frontend and API run separately (proxied). In production, same origin — Worker serves static assets + handles `/api/*`.
+
+---
+
+## One Codebase, N Niches
+
+The same codebase deploys into different market products. A niche is a configuration directory, not a fork.
+
+```
+/niches/{niche}/
+  scenes/            # JSON preset files (e.g., cafe-aesthetic.json)
+  config.ts          # Pricing, AI defaults, brand copy overrides
+  brand/             # Niche-specific positioning text, product name
+```
+
+Each niche deploys as its own Cloudflare Worker. Same engine, different config, different domain.
+
+**Naming rule:**
+- **Internal / API / code**: CONTEXT.md terms everywhere — `Selfie Set`, `Style References`, `Identity Profile`, `Intention`, `Intention Confirmation`, `Preset`, `Contact Sheet`, `Pack`, `Creator`. These never change between niches.
+- **User-facing**: configured per niche. The IG niche uses "Scene" for Presets, "The Brief" for the Intention Confirmation, "The Edit" for the Contact Sheet, "Drop" for Pack, "Moodboard" for Style References. A headshot niche would use different language.
+- **API routes stay generic**: `/api/scenes`, `/api/upload/presigned`, `/api/profile/status`, `/api/auth/*`. Backend returns internal terms in JSON. Frontend maps to user-facing language per niche config.
+
+---
+
+## Domain Language (Canonical — CONTEXT.md)
+
+These terms are the single source of truth for all code, API contracts, and internal docs. See [CONTEXT.md](CONTEXT.md) for full definitions.
+
+| Canonical Term | Avoid |
+|---------------|-------|
+| Creator | user, customer, client, influencer |
+| Selfie Set | training data, dataset |
+| Identity Profile | model, face model, avatar |
+| Style References | mood board, reference images |
+| Style Profile | filter, preset style |
+| Preset | template, theme, pack template |
+| Prompt | prompt engineering, query |
+| Product Image | prop, item, object |
+| Intention | prompt, request, generation spec |
+| Intention Confirmation | preview, summary, confirmation dialog |
+| One Turn | iteration, round, refinement pass |
+| Contact Sheet | gallery, album, batch, pack output |
+| Variation | shot, frame, alternative |
+| Pack | credit, session, job, generation |
+| Niche | vertical, segment |
+
+### Niche-Specific User-Facing Mappings (IG Example)
+
+| User sees | Maps to internal |
+|-----------|-----------------|
+| Scene | Preset |
+| The Brief | Intention Confirmation |
+| The Edit | Contact Sheet |
+| Drop | Pack |
+| Archive | Gallery |
+| Moodboard | Style References |
+| Monthly Access | Subscription (4 Drops/month) |
+| Single Drop | One-off pack ($10) |
+| Process | Generate (background batch) |
 
 ---
 
 ## Setup Commands
 
 ```bash
-# Install dependencies (pnpm required, Node >= 22.12)
+# Install (pnpm required, Node >= 22.12)
 pnpm install
 
-# Start full dev environment (Astro + Worker concurrently)
+# Full dev environment (Astro + Worker concurrently)
 pnpm dev
 
-# Typecheck both frontend and backend
+# Typecheck
 pnpm typecheck
 
-# Build static site for production
+# Build
 pnpm build
 
-# Preview production build (uses workerd runtime)
+# Preview production build
 pnpm preview
 
-# Run Worker only (standalone, for API debugging)
+# Worker only (API debugging)
 pnpm dev:api
 
-# Run Astro only (standalone, for UI debugging)
+# Astro only (UI debugging)
 pnpm dev:astro
+
+# D1 migrations
+npx wrangler d1 migrations apply opinionated-imagen-db
+npx wrangler d1 migrations apply opinionated-imagen-db --remote
+
+# Deploy
+pnpm build && npx wrangler deploy
 ```
 
 ---
@@ -60,327 +128,101 @@ pnpm dev:astro
 ## Project Structure
 
 ```
-  astro.config.mjs         # Astro config (proxy, integrations)
-  wrangler.toml            # Cloudflare Worker config (bindings, routes, assets)
-  package.json             # pnpm workspace root
-  tsconfig.json            # Frontend TypeScript config
-  postcss.config.mjs       # PostCSS config (Tailwind v4)
-  AGENTS.md                # This file
-  .dev.vars                # Local dev secrets (gitignored)
+/niches/{niche}/          # Niche configuration
+  scenes/*.json           # Preset catalog (e.g., cafe-aesthetic.json)
+  config.ts               # Pricing, AI defaults, brand overrides
 
-  src/                     # Astro frontend
-    components/ui/         # shadcn/ui components (Button, etc.)
-    islands/               # React islands (OnboardApp, CreateApp, GalleryApp)
-    layouts/               # Astro layouts (Base.astro)
-    lib/                   # Frontend utilities (api.ts, utils.ts)
-    pages/                 # Astro pages (index, onboard, create, gallery, dashboard)
-    styles/                # Tailwind v4 CSS config (global.css)
+/src                      # Astro frontend (shared across niches)
+  components/ui/          # shadcn/ui components
+  islands/                # React islands (OnboardApp, CreateApp, GalleryApp)
+  layouts/                # Astro layouts
+  lib/                    # Utilities (api.ts, utils.ts)
+  pages/                  # Astro pages
+  styles/                 # Tailwind CSS
 
-  functions/               # Hono Cloudflare Worker (backend)
-    index.ts               # App entry — route mounting, bindings, CORS
-    tsconfig.json          # Backend TypeScript config (uses @cloudflare/workers-types)
-    middleware/             # Hono middleware
-      auth.ts              # requireAuth — session cookie check, sets userId
-    lib/                   # Backend utilities
-      diagnostics.ts       # Structured error helpers (no console.log)
-      id.ts                # UUID v4 generator
-      storage.ts           # R2 S3-compatible client + presigned URL generation
-      email.ts             # Magic link email template builder
-      scenes-data.ts       # Bundled Scene catalog data
-    routes/                # Route handlers
-      auth.ts              # POST /api/auth/magic-link, GET /api/auth/verify, GET /api/auth/me, POST /api/auth/logout
-      upload.ts            # POST /api/upload/presigned — batch presigned URLs + session creation
-      profile.ts           # GET /api/profile/status + POST /api/profile/build — polling + build trigger
-      scenes.ts            # GET /api/scenes — curated Scene catalog
-    migrations/            # D1 SQL migrations (applied via wrangler d1 migrations)
-    scripts/               # One-shot setup scripts
-      setup-lifecycle.ts   # R2 lifecycle rule configuration (7-day TTL on orphan uploads)
-
-  dist/                    # Astro build output (gitignored)
-  .wrangler/               # Wrangler state (gitignored)
+/functions                # Cloudflare Worker backend
+  index.ts                # App entry, route mounting, bindings
+  middleware/auth.ts       # requireAuth middleware
+  lib/                    # diagnostics.ts, id.ts, storage.ts, email.ts, scenes-data.ts
+  routes/                 # auth.ts, upload.ts, profile.ts, scenes.ts
+  migrations/             # D1 SQL migrations
+  scripts/                # setup-lifecycle.ts
+  AGENTS.md               # Backend-specific reference
 ```
+
+See `functions/AGENTS.md` for backend-specific docs (route structure, D1 schema, binding types, R2 setup, error handling patterns).
 
 ---
 
-## Domain Language
+## API Routes
 
-From PRODUCT.md and brand guidelines. Use consistently:
-
-| User-Facing | Internal | Rule |
-|------------|----------|------|
-| Creators | — | The user. Never "user" or "customer". |
-| Selfie Set | — | Onboarding selfies. Never "training data". |
-| Moodboard | Style References | Photos teaching taste. |
-| Identity Profile | — | Extracted face/body representation. |
-| Style Profile | — | Extracted aesthetic fingerprint. |
-| Scene | Preset | Curated setup JSON-defined. |
-| Drop | Pack | One execution unit (Brief → Edit). |
-| The Brief | Intention Confirmation | Inline-editable paragraph. |
-| Process | Generate | Background batch. Never "generate" or "AI". |
-| The Edit | Contact Sheet | 8-shot output of one Drop. |
-| Archive | Gallery | Saved output library. |
-| Monthly Access | Subscription | Recurring: 4 Drops/month. |
-| Single Drop | One-off | Single purchase: 1 Drop. |
-| One Turn | — | Single adjustment cycle after Brief. |
-
-No emojis in source code. Use `@tabler/icons-react` instead.
-
----
-
-## Development Workflow
-
-### Astro Dev
-
-```bash
-pnpm dev:astro     # http://localhost:4321
-```
-
-Astro handles:
-- Static page generation (`src/pages/`)
-- React island mounting (islands auto-load in Astro pages)
-- API proxy: `/api/*` → `http://localhost:8787`
-
-### API Dev
-
-```bash
-pnpm dev:api       # http://localhost:8787
-```
-
-Hono Worker handles:
-- All data operations (D1 queries)
-- File uploads (R2 presigned URLs via S3 SDK)
-- Auth (email magic links)
-- AI generation (Workers AI)
-- Payments (Stripe)
-
-Some features require `--remote`:
-```bash
-wrangler dev functions/index.ts --remote --port=8787
-```
-Presigned URLs (S3 SDK) and production R2 access require remote mode.
-
-### Both Together
-
-```bash
-pnpm dev           # Astro + Worker concurrently
-```
-
-### Full Production Preview
-
-```bash
-pnpm build && npx wrangler dev
-```
-
-Builds the static site, then runs the Worker locally with `workerd`, serving both frontend assets and API on the same port.
-
----
-
-## API Routes (Backend)
-
-All deployed at `https://opinionated-imagen.nqh.workers.dev`.
+Deployed at `https://opinionated-imagen.nqh.workers.dev`.
 
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | `/api/health` | Health check |
-| GET | `/api/scenes` | List available Scenes |
-| POST | `/api/upload/presigned` | Generate batch presigned upload URLs to R2 |
+| GET | `/api/scenes` | List available Presets for the active niche |
+| POST | `/api/upload/presigned` | Batch presigned upload URLs to R2 |
 | GET | `/api/profile/status?sessionToken=` | Poll session/profile build status |
 | POST | `/api/profile/build` | Trigger async profile building |
-| POST | `/api/auth/magic-link` | Send magic link email (rate-limited 3/email/hour) |
-| GET | `/api/auth/verify?token=` | Validate magic link token, issue session cookie |
-| GET | `/api/auth/me` | Return authenticated user or 401 |
+| POST | `/api/auth/magic-link` | Send magic link (rate-limited 3/email/hour) |
+| GET | `/api/auth/verify?token=` | Validate token, issue session cookie |
+| GET | `/api/auth/me` | Return authenticated Creator or 401 |
 | POST | `/api/auth/logout` | Clear session cookie |
 
-All routes return structured JSON. Errors follow the diagnostic schema described under Code Style.
-
-### Upload Pipeline
-
-The upload flow:
-1. Creator drops photos → POST `/api/upload/presigned` with `{ sessionToken?, files: [...] }`
-2. Worker creates session (lazy), returns presigned PUT URLs (10 min expiry)
-3. Browser uploads directly to R2 (bypasses Worker — no bandwidth cost)
-4. Creator taps "I'm done" → POST `/api/profile/build`
-5. Worker validates thresholds (10 selfies, 5 moodboard), transitions session to `building_profile`
-6. Frontend polls GET `/api/profile/status?sessionToken=` while showing "Building your Profile..."
-
-Counts are optimistic (incremented at presigned URL generation, not at actual upload). If the Creator generates URLs for files that don't upload, the count inflates slightly — retry by re-requesting presigned URLs.
+All routes return structured JSON. Errors follow the diagnostic schema from `functions/lib/diagnostics.ts`.
 
 ---
 
 ## Code Style
 
-### General Rules
-
-- **No `console.log`** in app source. Use structured diagnostics from `functions/lib/diagnostics.ts` with `error_code`, `operation`, `context`, `retriable`, `recovery_hint`.
-- **No silent `.catch(() => {})`**. Annotate with `// @silent-catch reason:` or handle visibly. Every error state needs a recovery CTA.
-- **Every async island wrapped in `<ErrorBoundary>`**. Dev: red overlay + stack. Prod: graceful fallback + retry action.
+- **No `console.log`**. Use structured diagnostics from `functions/lib/diagnostics.ts` (`error_code`, `operation`, `context`, `retriable`, `recovery_hint`).
+- **No silent `.catch(() => {})`**. Annotate with `// @silent-catch reason:` or handle visibly.
+- **Every async island wrapped in `<ErrorBoundary>`**.
 - **Use `cn()` from `~/lib/utils`** (`clsx` + `tailwind-merge`). Never hand-roll.
 - **No emojis** in source code. Use `@tabler/icons-react`.
-- **Design token SSOT**. No raw colors (`text-[10px]`, `bg-[#ff0000]`). Use CSS variables or semantic Tailwind tokens (`bg-primary`, `text-muted-foreground`).
-
-### Diagnostic Response Shape
-
-All API errors return:
-```json
-{
-  "error_code": "UPPER_SNAKE_CASE_CODE",
-  "message": "Human-readable description",
-  "operation": "operation_name",
-  "context": { "optional": "fields" },
-  "retriable": false,
-  "recovery_hint": "What to do next"
-}
-```
-
-### Backend Conventions
-
-- Route handlers in `functions/routes/` mounted in `functions/index.ts` via `app.route()`.
-- Shared logic lives in `functions/lib/`.
-- D1 migrations in `functions/migrations/`, applied via `wrangler d1 migrations`.
-- Bindings typed in Hono generic `{ Bindings: T }`.
-- S3 SDK presigned URLs use `region: 'auto'` (required for R2 compatibility).
-- R2 S3 credentials with `sessionToken` (temp credentials) are supported via `R2_SESSION_TOKEN` env var. Permanent R2 API tokens don't need it.
-
-### Frontend Conventions
-
-- React for all interactive app surfaces. Arrow JS is LLM-generated sandboxed code only.
-- shadcn/ui with `@base-ui/react` primitives. No Radix.
-- Mobile first. Every screen designed for phone viewport first, desktop second.
-- PWA architecture from day one (manifest, service worker, offline-aware).
+- **Design token SSOT**. No raw colors in JSX. Use CSS variables or semantic Tailwind tokens.
+- **Mobile first.** Every screen designed for phone viewport first, desktop second.
+- **PWA architecture** from day one.
 
 ---
 
-## Build and Deployment
+## Big Fucking No's
 
-```bash
-# Build static site
-pnpm build          # Outputs to dist/
+These are product-level visual standards. Non-negotiable.
 
-# Deploy (builds Astro + deploys Worker with static assets)
-pnpm build && npx wrangler deploy
+- **No AI-generated look.** None. If it reads as AI to a casual viewer, it failed. Every output must pass the "is this a photo?" test.
+- **Photorealistic by default.** Every image should look like it came from an iPhone or a mirrorless camera. Natural lens behavior, natural light falloff, natural skin texture.
+- **No perfection.** Skin has pores. Hair has flyaways. Light has uneven color temp. Backgrounds are slightly out of focus, not razor-sharp CGI. Clothing wrinkles. Imperfection is signal.
+- **No uncanny smoothness.** Plastic skin, oversized eyes, symmetrical faces, impossible jawlines — all rejected. The model should generate humans who look real, not catalog models.
+- **No fake depth of field.** Bokeh should look like actual optics, not Gaussian blur layers. Wrong blur shape is a tell.
+- **No composited-on-background feeling.** The subject and the scene must feel like they were in the same physical space. No halo edges, no mismatched shadows, no floating feeling.
+- **No generic stock-photo posing.** The variation plan should produce candid, moment-like shots — not "woman smiling at camera in front of blank wall" energy.
+- **No oversaturation or hyper-clarity.** Film grain is fine. Slight softness is fine. Everything does not need to glow.
 
-# Deploy — dry run first
-npx wrangler deploy --dry-run
-```
+The target aesthetic: a friend took this photo with their phone. Not a studio. Not a renderer. A photo.
 
-### Production Architecture
+---
 
-The Worker serves both frontend and API on the same origin:
-- `[assets]` block in `wrangler.toml` reads `dist/` — static assets served directly by Cloudflare's edge
-- `main = "functions/index.ts"` handles `/api/*` routes
-- Non-API, non-asset paths fall through to the Worker (currently unused — all pages are static)
+## Prompting References
 
-### Environment Variables (Secrets)
-
-Set via `wrangler secret put`:
-```
-R2_ACCESS_KEY_ID         # R2 S3-compatible API access key (permanent)
-R2_SECRET_ACCESS_KEY     # R2 S3-compatible API secret key (permanent)
-ACCOUNT_ID               # Cloudflare account ID (9a46bf386fe59a2ee57558506623aaac)
-```
-
-Local dev values go in `.dev.vars` (gitignored).
-
-### D1 Migrations
-
-```bash
-# Create a new migration
-npx wrangler d1 migrations create opinionated-imagen-db <description>
-
-# Apply pending migrations (local)
-npx wrangler d1 migrations apply opinionated-imagen-db
-
-# Apply pending migrations (remote/production)
-npx wrangler d1 migrations apply opinionated-imagen-db --remote
-
-# Execute ad-hoc SQL (local)
-npx wrangler d1 execute opinionated-imagen-db --local --command "SELECT * FROM sessions;"
-
-# Execute ad-hoc SQL (remote)
-npx wrangler d1 execute opinionated-imagen-db --remote --command "SELECT * FROM sessions;"
-```
-
-Migrations directory: `functions/migrations/` (configured via `migrations_dir` in `wrangler.toml`). Each migration is numbered sequentially (`0001_`, `0002_`, ...).
-
-### R2 Bucket Management
-
-```bash
-# List buckets
-npx wrangler r2 bucket list
-
-# Create bucket
-npx wrangler r2 bucket create opinionated-imagen-storage
-
-# List objects in bucket
-npx wrangler r2 object list opinionated-imagen-storage
-
-# Generate temp S3 credentials (7-day TTL, requires R2_PARENT_KEY_ID)
-# Uses temp-access-credentials API — see functions/scripts/setup-lifecycle.ts
-```
-
-The lifecycle rule `expire-orphan-uploads` deletes objects under `uploads/` prefix after 7 days (configured via Cloudflare API/dashboard).
+- [OpenAI Image Generation Prompting Guide](https://github.com/openai/openai-cookbook/blob/main/examples/multimodal/image-gen-models-prompting-guide.ipynb) — best practices for GPT image models, photorealism patterns, multi-image editing
+- [GPT Image 2 Skill](https://github.com/wuyoscar/gpt_image_2_skill) — curated prompt gallery, agentic skill, CLI tooling for gpt-image-2
 
 ---
 
 ## Testing
 
-No test suite established yet.
-
 ```bash
-# Run tests for frontend (expected: vitest — not yet configured)
-pnpm test
-
-# Typecheck (use this as a minimum gate)
+pnpm test    # vitest (configured at root)
 pnpm typecheck
 ```
 
-Conventions to follow when adding tests:
-- **Integration tests first.** E2E for critical user journeys. Unit tests only for non-obvious logic.
-- **Test order**: Integration → targeted real tests → lint/format → broader suite.
-- **No coverage theater.** Test real behavior, not coverage numbers.
-- Tests are code: modularity, SSOT, naming, and no-monolith rules apply.
-- Reusable fixtures for IDs, locales, routes, ports, and auth identities.
+E2E auth test at `tests/e2e/auth-e2e.mjs` using `agent-mailbox` CLI. Integration tests hit real Hono routes with mocks when possible. No coverage theater — test real behavior.
 
 ---
 
-## PR Guidelines
+## Owners
 
-- **Title format**: `feat:`, `fix:`, `refactor:`, `chore:` prefix per conventional commits.
-- **Include WHY** in the commit body. Reference issue numbers when applicable.
-- **Run before submitting**:
-  ```bash
-  pnpm typecheck
-  npx wrangler deploy --dry-run
-  ```
-- Always write tests for changed code.
-- Never squash commits.
-
----
-
-## Database Schema (D1)
-
-Tables defined via migrations in `functions/migrations/`:
-
-| Table | Purpose | Key Columns |
-|-------|---------|-------------|
-| `sessions` | Anonymous onboarding sessions | token (PK), status enum, selfie_count, moodboard_count |
-| `uploads` | Uploaded files per session | id (PK), session_token (FK), upload_type, r2_key |
-| `scenes` | Curated Scene catalog (schema only — data sourced from TS module) | id (PK), name, description, tags, base_scene, composition_plan |
-| `users` | Authenticated Creators | id (PK), email (UNIQUE), created_at, last_seen |
-| `magic_links` | One-time magic link tokens | token (PK), email, used flag, expires_at |
-| `sessions_auth` | Auth session cookies | id (PK, cookie value), user_id (FK), expires_at |
-| `magic_link_attempts` | Rate limiting counter | id (PK), email, attempted_at |
-
----
-
-## Additional Notes
-
-- Node.js >= 22.12 required (Astro v6 constraint).
-- `wrangler.toml` is gitignored (contains database IDs). Template any changes in AGENTS.md or deploy scripts.
-- The project root `.dev.vars` stores local-only R2 credentials (gitignored).
-- Auth: email magic links deferred to Process Drop. Session cookie (Secure; HttpOnly; SameSite=Strict, 30-day expiry). Cookie-based auth coexists with anonymous session tokens (localStorage). Future work: link anonymous sessions to Creator accounts on first auth.
-- Magic link sender: `auth@bybrandr.com` (configurable via `MAIL_FROM` env var). Requires the sender domain to be verified in Cloudflare Email Routing.
-- **Brand**: All products carry a "designed by brandr" footer linking to bybrandr.com. Never use "AI" language.
-- **Visual standards**: No AI-generated look. Photorealistic only. No perfection (skin texture, flyaways, natural lighting). No fake depth of field.
-- **Production URL**: `https://opinionated-imagen.nqh.workers.dev`
-- **Worker name**: `opinionated-imagen` (deployed via wrangler)
+- Huy: product, architecture
+- Dani: UI, UX
