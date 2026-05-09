@@ -1,0 +1,90 @@
+# Qlty configuration for opinionated-imagen
+# TypeScript (React + Astro) frontend, Hono Cloudflare Worker backend
+config_version = "0"
+
+exclude_patterns = [
+  "*_min.*",
+  "*-min.*",
+  "*.min.*",
+  "**/.wrangler/**",
+  "**/.yarn/**",
+  "**/*.d.ts",
+  "**/assets/**",
+  "**/bower_components/**",
+  "**/build/**",
+  "**/cache/**",
+  "**/dist/**",
+  "**/extern/**",
+  "**/external/**",
+  "**/generated/**",
+  "**/Godeps/**",
+  "**/gradlew/**",
+  "**/mvnw/**",
+  "**/node_modules/**",
+  "**/protos/**",
+  "**/seed/**",
+  "**/target/**",
+  "**/templates/**",
+  "**/testdata/**",
+  "**/vendor/**",
+]
+
+test_patterns = [
+  "**/test/**",
+  "**/spec/**",
+  "**/*.test.*",
+  "**/*.spec.*",
+  "**/*_test.*",
+  "**/*_spec.*",
+  "**/test_*.*",
+  "**/spec_*.*",
+]
+
+[smells]
+mode = "comment"
+
+[[source]]
+name = "default"
+default = true
+
+# --- Security ---
+
+[[plugin]]
+name = "trufflehog"
+
+[[plugin]]
+name = "gitleaks"
+mode = "comment"
+
+[[plugin]]
+name = "osv-scanner"
+
+# --- JavaScript / TypeScript ---
+
+[[plugin]]
+name = "oxc"
+mode = "block"
+
+# --- Formatting ---
+
+[[plugin]]
+name = "prettier"
+mode = "block"
+
+# --- Documentation ---
+
+[[plugin]]
+name = "markdownlint"
+mode = "comment"
+
+# --- Editor Config ---
+
+[[plugin]]
+name = "editorconfig-checker"
+mode = "comment"
+
+# --- Custom ripgrep checks ---
+
+[[plugin]]
+name = "ripgrep"
+mode = "comment"
