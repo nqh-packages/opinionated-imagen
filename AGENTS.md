@@ -11,8 +11,9 @@ Read [PRODUCT.md](PRODUCT.md) for full product context and [CONTEXT.md](CONTEXT.
 | Layer | Tool |
 |-------|------|
 | Static pages | Astro |
-| App UI | React |
-| Styling | Tailwind CSS |
+| App UI | React + shadcn/ui (base-ui primitives) |
+| Styling | Tailwind CSS v4 |
+| Component library | shadcn/ui with @base-ui/react primitives |
 | LLM-generated interactions | Arrow JS Sandbox (`@arrow-js/sandbox`) |
 | Build | Vite (from `create-arrow-js@latest`) |
 | Backend | Cloudflare Workers (Hono) |
@@ -25,7 +26,10 @@ Read [PRODUCT.md](PRODUCT.md) for full product context and [CONTEXT.md](CONTEXT.
 ## Rules
 
 - **React for all interactive app surfaces.** Arrow JS is reserved for LLM-generated sandboxed code only.
-- **No pre-built component libraries** (no shadcn, no Radix). Build from DOM primitives.
+- **shadcn/ui** with @base-ui/react primitives for components. No Radix.
+- **Mobile first.** Every screen designed for phone viewport first, desktop second.
+- **App-like UX.** Design for installable PWA from day one (manifest, service worker, offline-aware). Native-feel gestures, safe areas, bottom sheets, not web-page scrolling.
+- **Expo-ready.** PWA architecture must port cleanly to React Native / Expo later. Avoid web-only APIs in app surfaces.
 - **One person per generation.** Multi-person is out of scope.
 - **One turn** of tweaking in the Intention Confirmation step. No prolonged dialogue.
 
@@ -33,7 +37,9 @@ Read [PRODUCT.md](PRODUCT.md) for full product context and [CONTEXT.md](CONTEXT.
 
 - **Astro** handles marketing/landing/static pages.
 - **React** renders all interactive app surfaces: onboarding, intention confirmation, gallery, dashboard.
+- **shadcn/ui** provides the component layer (Button, Card, Dialog, etc.) using @base-ui/react primitives.
 - **Arrow JS Sandbox** runs LLM-generated code in isolation for dynamic interactions injected into React surfaces.
+- **PWA** architecture from day one: installable, offline-capable, app-shell pattern. Ports cleanly to Expo later.
 - **gpt-image-2** is the generation model for v1. It's the only Workers AI model that supports multi-image editing (up to 16 base64 refs blended into one output).
 - Identity consistency comes from passing the Selfie Set as reference images in the generation call, not from fine-tuning or LoRAs.
 
