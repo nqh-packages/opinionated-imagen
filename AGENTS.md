@@ -1,192 +1,307 @@
 # AGENTS.md
 
-## Project
+## Project Overview
 
-Opinionated Imagen — niche AI image generation framework. First niche: Instagram content for individual creators.
+Opinionated Imagen — niche AI image generation framework. First niche: Instagram content for individual creators. The product is a premium creative service, not an "AI tool." Never use "AI" or "training" language in any surface.
 
-Read [PRODUCT.md](PRODUCT.md) for full product context and [CONTEXT.md](CONTEXT.md) for domain language.
-
-## Stack
+### Stack
 
 | Layer | Tool |
 |-------|------|
-| Static pages | Astro |
-| App UI | React + shadcn/ui (base-ui primitives) |
-| Styling | Tailwind CSS v4 |
-| Component library | shadcn/ui with @base-ui/react primitives |
-| LLM-generated interactions | Arrow JS Sandbox (`@arrow-js/sandbox`) |
-| Build | Vite (from `create-arrow-js@latest`) |
-| Backend | Cloudflare Workers (Hono) |
-| Database | Cloudflare D1 |
-| Storage | Cloudflare R2 |
-| AI | Cloudflare Workers AI |
+| Static pages | Astro v6.3 (Vite 7, Tailwind v4) |
+| App UI | React 19 + shadcn/ui (`@base-ui/react` primitives) |
+| Styling | Tailwind CSS v4 (CSS-first config via `@theme`) |
+| LLM-generated sandboxed code | Arrow JS Sandbox (`@arrow-js/sandbox`) |
+| Backend API | Cloudflare Workers (Hono v4) |
+| Database | Cloudflare D1 (SQLite) |
+| Object Storage | Cloudflare R2 |
+| AI inference | Cloudflare Workers AI (gpt-image-2 for generation) |
 | Auth | Email magic links (Cloudflare Email Workers) |
 | Payments | Stripe |
 
-## Rules
+### Architecture
 
-- **React for all interactive app surfaces.** Arrow JS is reserved for LLM-generated sandboxed code only.
-- **shadcn/ui** with @base-ui/react primitives for components. No Radix.
-- **Mobile first.** Every screen designed for phone viewport first, desktop second.
-- **App-like UX.** Design for installable PWA from day one (manifest, service worker, offline-aware). Native-feel gestures, safe areas, bottom sheets, not web-page scrolling.
-- **Expo-ready.** PWA architecture must port cleanly to React Native / Expo later. Avoid web-only APIs in app surfaces.
-- **No hand-rolled primitives.** Use shadcn/ui components (Button, Card, Input, Dialog, etc.). Custom CSS only for brand patterns and layout, not for reinventing accessible widgets.
-- **Design token SSOT.** No raw colors, sizes, or radii in component files. Use CSS variables from `src/styles/global.css` or semantic Tailwind tokens (`bg-primary`, `text-muted-foreground`). `text-[10px]`, `bg-[#ff0000]`, etc. are forbidden.
-- **No `console.log` in app source.** Use structured diagnostics with `error_code`, operation, context, retriability, and recovery hint. No `console.error()` as the sole handler — always pair with user-visible error state.
-- **No silent `.catch(() => {})`.** Annotate with `// @silent-catch reason:` or handle visibly. Every error state needs a recovery CTA (retry, refresh, navigate). No dead-end errors.
-- **Every async island wrapped in `<ErrorBoundary>`.** Dev: red overlay + stack. Prod: graceful fallback + retry action.
-- **Use `cn()` from `~/lib/utils`.** Never hand-roll `clsx` + `tailwind-merge` locally.
-- **No emojis in source code.** Use the app's icon stack (`@tabler/icons-react`) instead.
-- **One person per generation.** Multi-person is out of scope.
-- **One turn** of tweaking in the Intention Confirmation step. No prolonged dialogue.
+Two parallel runtimes:
 
-## Architecture Decisions
+1. **Astro** (`astro dev`) — serves static pages + mounts React islands on interactive surfaces. Listens on port 4321. API calls are proxied to the backend via Vite's `server.proxy` in `astro.config.mjs`.
+2. **Hono Worker** (`wrangler dev`) — standalone Cloudflare Worker at `functions/index.ts` handling all data, auth, AI generation, and upload. Listens on port 8787.
 
-- **Astro** handles marketing/landing/static pages.
-- **React** renders all interactive app surfaces: onboarding, intention confirmation, gallery, dashboard.
-- **shadcn/ui** provides the component layer (Button, Card, Dialog, etc.) using @base-ui/react primitives.
-- **Arrow JS Sandbox** runs LLM-generated code in isolation for dynamic interactions injected into React surfaces.
-- **PWA** architecture from day one: installable, offline-capable, app-shell pattern. Ports cleanly to Expo later.
-- **gpt-image-2** is the generation model for v1. It's the only Workers AI model that supports multi-image editing (up to 16 base64 refs blended into one output).
-- Identity consistency comes from passing the Selfie Set as reference images in the generation call, not from fine-tuning or LoRAs.
+The frontend talks to the Worker via `fetch('/api/...')` in dev (proxied) and via the same origin in production.
 
-## Domain Language
+---
 
-Key terms from [PRODUCT.md](PRODUCT.md) and [docs/brand-guidelines.md](docs/brand-guidelines.md):
-
-| User-Facing | Internal | Notes |
-|------------|----------|-------|
-| **Creator** | — | The user. Never "user" or "customer." |
-| **Selfie Set** | — | Onboarding upload batch for identity. Never "training data." |
-| **Moodboard** | Style References | Photos teaching aesthetic taste. |
-| **Identity Profile** | — | Extracted face/body representation. |
-| **Style Profile** | — | Extracted aesthetic fingerprint. |
-| **Scene** | Preset | Curated setup: setting + composition + variation mix. JSON-defined. |
-| **Drop** | Pack | One execution unit (one Brief → one Edit). |
-| **The Brief** | Intention Confirmation | Inline-editable paragraph preview. |
-| **Process** | Generate | Background batch generation. Never "generate" or "AI." |
-| **The Edit** | Contact Sheet | 8-shot output of one Drop. |
-| **Archive** | Gallery | Saved output library. |
-| **Monthly Access** | Subscription | Recurring: 4 Drops/month. |
-| **Single Drop** | One-off | Single purchase: 1 Drop. |
-| **Intention** | — | Structured generation plan (internal). Never user-facing. |
-| **One Turn** | — | Single adjustment cycle after Brief. |
-
-See [CONTEXT.md](CONTEXT.md) for full relationship definitions and example dialogues.
-
-## Brand & Design
-
-- **Brand guidelines** live at `docs/brand-guidelines.md`. Messaging, voice, and vocabulary are locked decisions. Visual identity (colors, typography, imagery) are provisional — **Dani owns final design system.**
-- See brand guidelines for: forbidden words, tone by context, audience messaging, and visual direction.
-- **Big Fucking No's** (product-level visual standards) remain non-negotiable and live below.
-
-## Runtime Requirements
-
-- **Node `22.12.0`** or higher (Astro v6 requirement)
-- **pnpm** as package manager
-
-## Astro / Vite / Tailwind Versions
-
-| Tool | Version | Notes |
-|------|---------|-------|
-| Astro | v6.3 | Vite 7 under the hood. `import.meta.env.ASSETS_PREFIX` deprecated; use `astro:config/server` if needed. |
-| Vite | v7 | Bundled by Astro. Compatible with current Tailwind v4 + `@tailwindcss/vite`. |
-| Tailwind | v4 | CSS-first config via `@theme` in `src/styles/global.css`. |
-
-### Astro v6 Gotchas
-
-- **Tailwind v4 scoped styles**: Astro 6.2.2 fixed a bug where Tailwind `space-x-*`, `space-y-*`, `divide-*` utilities leaked out of `.astro` component scoped `<style>` blocks. If using those utilities inside components with `scoped`, verify styles don't escape.
-- **SVG images**: Astro no longer rasterizes SVGs by default. Set `image.dangerouslyProcessSVG: true` in `astro.config.mjs` if you need rasterized SVG output.
-- **Zod 4**: Shipps with Astro. Future schema work (content config, form validation) should import `z` from `astro/zod` (not `zod` directly) to stay in sync.
-
-## Backend Architecture
-
-- **Hono lives in `/functions/index.ts` as a standalone Cloudflare Worker.** It is NOT integrated into Astro via `astro/hono` or experimental advanced routing.
-- The frontend talks to the Worker via `fetch('/api/...')` in dev (proxied by Vite) and via the same origin in production.
-- Keep the boundary clean: Astro pages are static shells; React islands handle UI state; Hono handles data, auth, payments, and AI generation.
-
-## Getting Started
+## Setup Commands
 
 ```bash
-# Install dependencies
+# Install dependencies (pnpm required, Node >= 22.12)
 pnpm install
 
-# Start dev server (Astro + Hono Worker concurrently)
+# Start full dev environment (Astro + Worker concurrently)
 pnpm dev
 
-# Typecheck (both frontend and functions)
+# Typecheck both frontend and backend
 pnpm typecheck
 
-# Build for production
+# Build static site for production
 pnpm build
 
-# Dry-run Worker deploy
-pnpm wrangler deploy --dry-run
+# Preview production build
+pnpm preview
+
+# Run Worker only (standalone, for API debugging)
+pnpm dev:api
+
+# Run Astro only (standalone, for UI debugging)
+pnpm dev:astro
 ```
+
+---
 
 ## Project Structure
 
 ```
-/src
-  /components      # React components
-  /pages           # Astro pages (static)
-  /islands         # React islands mounted in Astro
-  /lib             # Shared utilities
-  /styles          # Tailwind + global CSS
-/functions         # Cloudflare Workers (Hono API)
-/niches
-  /ig-content      # First niche config
-    /scenes        # Scene JSON files (user-facing "Scene", internal "Preset")
+/Volumes/BIWIN/CODES/opinionated-imagen
+  astro.config.mjs        # Astro config (proxy, integrations, Tailwind)
+  wrangler.toml            # Cloudflare Worker config (bindings, routes)
+  package.json             # pnpm workspace root
+  tsconfig.json            # Frontend TypeScript config
+  AGENTS.md                # This file
+
+  src/                     # Astro frontend
+    components/ui/         # shadcn/ui components (Button, etc.)
+    islands/               # React islands (OnboardApp, CreateApp, GalleryApp)
+    layouts/               # Astro layouts (Base.astro)
+    lib/                   # Frontend utilities (api.ts, utils.ts)
+    pages/                 # Astro pages (index, onboard, create, gallery, dashboard)
+    styles/                # Tailwind v4 CSS config (global.css)
+
+  functions/               # Hono Cloudflare Worker (backend)
+    index.ts               # App entry — route mounting, bindings
+    tsconfig.json          # Backend TypeScript config (uses @cloudflare/workers-types)
+    lib/                   # Backend utilities
+      diagnostics.ts       # Structured error helpers (no console.log)
+      id.ts                # UUID v4 generator
+      storage.ts           # R2 S3-compatible client + presigned URL generation
+    routes/                # Route handlers
+      upload.ts            # POST /api/upload/presigned — batch presigned URLs + session creation
+      profile.ts           # GET /api/profile/status + POST /api/profile/build — polling + build trigger
+    migrations/            # D1 SQL migrations (applied via wrangler d1 migrations)
+    scripts/               # One-shot setup scripts
+      setup-lifecycle.ts   # R2 lifecycle rule configuration (7-day TTL on orphan uploads)
 ```
-
-## AI Models (Cloudflare Workers AI)
-
-- **Generation**: `openai/gpt-image-2` — multi-image editing with identity + style + product refs
-- **Curation/Vision**: `google/gemma-4-26b-a4b-it` or `moonshot-ai/kimi-k2.6`
-- **Fallback to test**: `bytedance/seedream-5-lite` — if multi-reference works, cheaper for variations
-
-## Scene Format
-
-> User-facing: **Scene**. Internal: **Preset**.
-
-```json
-{
-  "id": "cafe-aesthetic",
-  "name": "Cafe Aesthetic",
-  "description": "Relaxed cafe moments",
-  "baseScene": "A person sitting at a cafe table...",
-  "compositionPlan": [
-    { "type": "seated-portrait", "ratio": 3 },
-    { "type": "candid-over-shoulder", "ratio": 2 }
-  ],
-  "defaultStyleTags": ["warm", "film-like"],
-  "requiresProductImage": false
-}
-```
-
-## Big Fucking No's
-
-These are product-level visual standards. Non-negotiable.
-
-- **No AI-generated look.** None. If it reads as AI to a casual viewer, it failed. Every output must pass the "is this a photo?" test.
-- **Photorealistic by default.** Every image should look like it came from an iPhone or a mirrorless camera. Natural lens behavior, natural light falloff, natural skin texture.
-- **No perfection.** Skin has pores. Hair has flyaways. Light has uneven color temp. Backgrounds are slightly out of focus, not razor-sharp CGI. Clothing wrinkles. Imperfection is signal.
-- **No uncanny smoothness.** Plastic skin, oversized eyes, symmetrical faces, impossible jawlines — all rejected. The model should generate humans who look real, not catalog models.
-- **No fake depth of field.** Bokeh should look like actual optics, not Gaussian blur layers. Wrong blur shape is a tell.
-- **No composited-on-background feeling.** The subject and the scene must feel like they were in the same physical space. No halo edges, no mismatched shadows, no floating feeling.
-- **No generic stock-photo posing.** The variation plan should produce candid, moment-like shots — not "woman smiling at camera in front of blank wall" energy.
-- **No oversaturation or hyper-clarity.** Film grain is fine. Slight softness is fine. Everything does not need to glow.
-
-The target aesthetic: a friend took this photo with their phone. Not a studio. Not a renderer. A photo.
 
 ---
 
-## Prompting References
+## Domain Language
 
-- [OpenAI Image Generation Prompting Guide](https://github.com/openai/openai-cookbook/blob/main/examples/multimodal/image-gen-models-prompting-guide.ipynb) — best practices for GPT image models, photorealism patterns, multi-image editing
-- [GPT Image 2 Skill](https://github.com/wuyoscar/gpt_image_2_skill) — curated prompt gallery, agentic skill, CLI tooling for gpt-image-2
+From PRODUCT.md and brand guidelines. Use consistently:
 
-## Owners
+| User-Facing | Internal | Rule |
+|------------|----------|------|
+| Creators | — | The user. Never "user" or "customer". |
+| Selfie Set | — | Onboarding selfies. Never "training data". |
+| Moodboard | Style References | Photos teaching taste. |
+| Identity Profile | — | Extracted face/body representation. |
+| Style Profile | — | Extracted aesthetic fingerprint. |
+| Scene | Preset | Curated setup JSON-defined. |
+| Drop | Pack | One execution unit (Brief → Edit). |
+| The Brief | Intention Confirmation | Inline-editable paragraph. |
+| Process | Generate | Background batch. Never "generate" or "AI". |
+| The Edit | Contact Sheet | 8-shot output of one Drop. |
+| Archive | Gallery | Saved output library. |
+| Monthly Access | Subscription | Recurring: 4 Drops/month. |
+| Single Drop | One-off | Single purchase: 1 Drop. |
+| One Turn | — | Single adjustment cycle after Brief. |
 
-- Huy: product, architecture
-- Dani: UI, UX
+No emojis in source code. Use `@tabler/icons-react` instead.
+
+---
+
+## Development Workflow
+
+### Astro Dev
+
+```bash
+pnpm dev:astro     # http://localhost:4321
+```
+
+Astro handles:
+- Static page generation (`src/pages/`)
+- React island mounting (islands auto-load in Astro pages)
+- API proxy: `/api/*` → `http://localhost:8787`
+
+### API Dev
+
+```bash
+pnpm dev:api       # http://localhost:8787
+```
+
+Hono Worker handles:
+- All data operations (D1 queries)
+- File uploads (R2 presigned URLs)
+- Auth (email magic links)
+- AI generation (Workers AI)
+- Payments (Stripe)
+
+Some features require `--remote`:
+```bash
+wrangler dev functions/index.ts --remote --port=8787
+```
+Presigned URLs (S3 SDK) and production R2 access require remote mode.
+
+### Both Together
+
+```bash
+pnpm dev           # Astro + Worker concurrently
+```
+
+---
+
+## API Routes
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/health` | Health check |
+| GET | `/api/presets` | List available Scenes |
+| POST | `/api/upload/presigned` | Generate batch presigned upload URLs to R2 |
+| GET | `/api/profile/status?sessionToken=` | Poll session/profile build status |
+| POST | `/api/profile/build` | Trigger async profile building |
+
+All routes return structured JSON. Errors follow the diagnostic schema described under Code Style.
+
+---
+
+## Code Style
+
+### General Rules (from AGENTS.md)
+
+- **No `console.log`** in app source. Use structured diagnostics from `functions/lib/diagnostics.ts` with `error_code`, `operation`, `context`, `retriable`, `recovery_hint`.
+- **No silent `.catch(() => {})`**. Annotate with `// @silent-catch reason:` or handle visibly. Every error state needs a recovery CTA.
+- **Every async island wrapped in `<ErrorBoundary>`**. Dev: red overlay + stack. Prod: graceful fallback + retry action.
+- **Use `cn()` from `~/lib/utils`** (`clsx` + `tailwind-merge`). Never hand-roll.
+- **No emojis** in source code. Use `@tabler/icons-react`.
+- **Design token SSOT**. No raw colors (`text-[10px]`, `bg-[#ff0000]`). Use CSS variables or semantic Tailwind tokens (`bg-primary`, `text-muted-foreground`).
+
+### Diagnostic Response Shape
+
+All API errors return:
+```json
+{
+  "error_code": "UPPER_SNAKE_CASE_CODE",
+  "message": "Human-readable description",
+  "operation": "operation_name",
+  "context": { "optional": "fields" },
+  "retriable": false,
+  "recovery_hint": "What to do next"
+}
+```
+
+### Backend Conventions
+
+- Route handlers in `functions/routes/` are mounted in `functions/index.ts` via `app.route()`.
+- Shared logic lives in `functions/lib/`.
+- D1 migrations in `functions/migrations/`, applied via `wrangler d1 migrations`.
+- Bindings are typed in the Hono generic `{ Bindings: T }`.
+- S3 SDK presigned URLs use `region: 'auto'` (required for R2 compatibility).
+
+### Frontend Conventions
+
+- React for all interactive app surfaces. Arrow JS is LLM-generated sandboxed code only.
+- shadcn/ui with `@base-ui/react` primitives. No Radix.
+- Mobile first. Every screen designed for phone viewport first, desktop second.
+- PWA architecture from day one (manifest, service worker, offline-aware).
+
+---
+
+## Testing
+
+No test suite established yet. When adding tests:
+
+```bash
+# Run tests for frontend (expected: vitest)
+pnpm test
+
+# Run tests for functions (expected: vitest or mocha)
+# No testing framework installed yet for the backend
+```
+
+Conventions from project AGENTS.md:
+- **Integration tests first.** E2E for critical user journeys. Unit tests only for non-obvious logic.
+- **Test order**: Integration → targeted real tests → lint/format → broader suite
+- **No coverage theater.** Test real behavior, not coverage numbers.
+- Tests are code: modularity, SSOT, naming, and no-monolith rules apply.
+- Reusable fixtures for IDs, locales, routes, ports, and auth identities.
+
+---
+
+## Build and Deployment
+
+```bash
+# Build static site
+pnpm build     # Outputs to dist/
+
+# Preview build
+pnpm preview
+
+# Deploy Worker (requires wrangler authentication)
+pnpm wrangler deploy
+
+# Deploy Worker — dry run first
+pnpm wrangler deploy --dry-run
+```
+
+### Environment Variables (Secrets)
+
+Set via `wrangler secret put`:
+```
+R2_ACCESS_KEY_ID         # R2 S3-compatible API access key
+R2_SECRET_ACCESS_KEY     # R2 S3-compatible API secret key
+ACCOUNT_ID               # Cloudflare account ID
+```
+
+Local dev values go in `.dev.vars` (gitignored).
+
+---
+
+## D1 Migrations
+
+```bash
+# Create a new migration
+npx wrangler d1 migrations create opinionated-imagen-db <description>
+
+# Apply pending migrations (local)
+npx wrangler d1 migrations apply opinionated-imagen-db
+
+# Apply pending migrations (remote/production)
+npx wrangler d1 migrations apply opinionated-imagen-db --remote
+
+# Execute ad-hoc SQL
+npx wrangler d1 execute opinionated-imagen-db --local --command "SELECT * FROM sessions;"
+```
+
+Migrations live in `functions/migrations/`. Each migration is numbered sequentially (`0001_`, `0002_`, ...).
+
+---
+
+## PR Guidelines
+
+- **Title format**: `feat:`, `fix:`, `refactor:`, `chore:` prefix per conventional commits.
+- **Include WHY** in the commit body. Reference issue numbers when applicable.
+- **Run before submitting**:
+  ```bash
+  pnpm typecheck
+  npx wrangler deploy --dry-run
+  ```
+- Always write tests for changed code.
+- Never squash commits.
+
+---
+
+## Additional Notes
+
+- Node.js >= 22.12 required (Astro v6 constraint).
+- wrangler.toml is gitignored (contains database IDs). Template any changes in AGENTS.md or deploy scripts.
+- The project root `.dev.vars` stores local-only R2 credentials (gitignored).
+- Active sessions are anonymous (no auth). Future auth via email magic links links sessions to Creator accounts.
+- **Brand**: All products carry a "designed by brandr" footer linking to bybrandr.com. Never use "AI" language.
+- **Visual standards**: No AI-generated look. Photorealistic only. No perfection (skin texture, flyaways, natural lighting). No fake depth of field.

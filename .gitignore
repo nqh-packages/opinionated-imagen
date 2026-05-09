@@ -10,6 +10,9 @@ dist
 .wrangler
 wrangler.toml
 
+# Wrangler local secrets
+.dev.vars
+
 # Environment
 .env
 .env.local
@@ -17,6 +20,9 @@ wrangler.toml
 
 # Logs
 *.log
+
+# Session artifacts
+.evlog/logs/
 
 # OS
 .DS_Store

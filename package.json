@@ -13,6 +13,8 @@
   },
   "dependencies": {
     "@arrow-js/core": "^1.0.0",
+    "@aws-sdk/client-s3": "^3.1045.0",
+    "@aws-sdk/s3-request-presigner": "^3.1045.0",
     "@base-ui/react": "^1.4.1",
     "@fontsource-variable/noto-serif": "^5.2.9",
     "@fontsource-variable/roboto-slab": "^5.2.8",
