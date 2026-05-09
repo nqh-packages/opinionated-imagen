@@ -2,15 +2,21 @@
 
 ## What
 
-As we talked about, we can build a more niched to compete with PhotoAI. So I came up with something opinionated. One niche at a time. First niche: Instagram content for people like Lily.
+Your photos, elevated. Not a tool. An invisible creative team that makes your social wall look like it came from a magazine — as if you had an ekip behind every shot.
 
-She uploads her photos. The system learns her face and her taste. She tells it what she wants, or picks a preset. The system says back: "This is what I understood from what you said." She checks it, tweaks it once if it's wrong, and hits go. A contact sheet of variations comes back. No prompt engineering. No surprises. One turn, one confirmation, one pack.
+For creators like Lily, this means no more Saturday afternoon shoots, no more praying a friend takes a good photo, no more scrolling presets to find something that sort of works. She uploads her photos, teaches the system her taste, and gets back magazine-grade content on demand.
+
+One niche at a time. First niche: Instagram content for people like Lily.
+
+She uploads her photos. The system learns her face and her taste. She tells it what she wants, or picks a **Scene**. The system says back: "This is what I understood." She checks it, tweaks it once if it's wrong, and hits go. **The Edit** comes back: a curated contact sheet of variations. No prompt engineering. No surprises. One turn, one **Brief**, one **Drop**.
 
 ## Why
 
-PhotoAI ships 30+ features. Video, 3D, mocap, face combining. Most people use maybe three of those.
+PhotoAI ships 30+ features. Video, 3D, mocap, face combining. Most people use maybe three of those. And even then, the output looks like AI — smooth skin, impossible lighting, that telltale synthetic sheen.
 
-I think the opportunity is in the opposite direction. Make it small. Make it about one thing done well. Build it so the framework can stretch to other niches later, but ship one vertical first and make it actually work.
+I think the opportunity is in the opposite direction. Make it small. Make it about one thing done well. Make it look like a magazine editorial team produced it, not like an AI spit it out. Build the framework so it can stretch to other niches later, but ship one vertical first and make it actually work.
+
+The positioning: this is *not* an AI product. It is a premium creative service. The language everywhere should feel like fashion editorial, not software. "Processing your Drop" not "Generating." "The Brief" not "Prompt Preview." "Scene" not "Preset." "The Edit" not "AI Output."
 
 ## Who
 
@@ -36,7 +42,7 @@ Lily uploads two kinds of photos.
 
 First, her **Selfie Set**. Ten to twenty photos of herself. Different angles, different lighting, different expressions. Her face, her body, how she looks.
 
-Second, her **Style References**. Eight to fifteen photos she actually likes. Her own past posts. Photos from other accounts she wishes were hers. Stuff that shows the system what kind of aesthetic she wants.
+Second, her **Moodboard**. Eight to fifteen photos she actually likes. Her own past posts. Photos from other accounts she wishes were hers. Stuff that shows the system what kind of aesthetic she wants. (Internally: **Style References**.)
 
 The **Curation Engine** runs in the background. A vision model looks at her selfies and extracts what she looks like. Another vision model looks at her style references and extracts her taste: color palette, contrast level, film grain preference, how she likes things composed. It saves both as a permanent **Identity Profile** and **Style Profile**.
 
@@ -48,62 +54,60 @@ She opens the Create page.
 
 Two ways in.
 
-**Option A, Preset.** She picks from curated presets. "Cafe Aesthetic." "Golden Hour Portrait." "Streetwear Fit Check." Each one is a bundle: a scene type, a default composition plan, and how the contact sheet should be mixed.
+**Option A, Scene.** She browses the Scene catalog. "Cafe Aesthetic." "Golden Hour Portrait." "Streetwear Fit Check." Each **Scene** is a curated setup: a setting, a default composition plan, and how **The Edit** should be mixed. Scenes are presented as a browse-first card grid — magazine editorial energy, not a software catalog.
 
 **Option B, Custom.** She types freeform. "Me at a basketball court, golden hour, wearing the Nikes I uploaded." She can upload a **Product Image** if she wants.
 
-### 3. Intention Confirmation
+### 3. The Brief
 
 This is the center of the product.
 
-The system builds an **Intention**, which is a structured plan for what it will generate. Then it shows that plan to her in plain language:
+The system builds an **Intention**, which is a structured plan for what it will generate. Then it renders that plan as **The Brief** — a plain-language paragraph preview:
 
-> **Subject**: You (from your selfie set)
-> **Wearing**: The uploaded Nikes
-> **Setting**: Outdoor basketball court at golden hour
-> **Style**: Your muted-film grade, warm shadows, low contrast
-> **Variations**: 8 shots — 3 full-body action, 2 seated portrait, 3 low-angle candid
+> You at a warm cafe table, morning window light from the left. Muted-film grade, soft shadows. 8 shots: 3 seated portraits, 2 candid over-shoulder, 2 detail shots, 1 wide environment.
 
-Every line is editable. She clicks any line, changes it. The text updates live. That is her **One Turn**. She tweaks once, or she doesn't tweak at all. Then she hits **Generate**.
+Every clause is inline-editable. She clicks any phrase, changes it. The text updates live. That is her **One Turn**. She tweaks once, or she doesn't tweak at all. Then she hits **Process**.
 
-No preview image. No cheap draft. Just a confirmation of what the system understood, in words, before it burns GPU.
+No preview image. No cheap draft. Just a confirmation of what the system understood, in words, before it commits.
 
-### 4. Generate
+### 4. Process
 
 The **Generation Engine** sends her confirmed Intention to Cloudflare Workers AI.
 
 - Text-to-image and image-to-image pipelines.
 - Identity Profile used for face and body consistency.
 - Style Profile used for grading.
-- Each variation type gets its own generation call, run in parallel.
-- Results assembled into a **Contact Sheet** of 8 variations.
+- Variations are generated in background batches (2–4 at a time) with retry logic.
+- Results assembled into **The Edit**: a contact sheet of 8 variations.
 
-Time: 20 to 60 seconds.
+Time: 2 to 5 minutes. She can leave the page; she'll get notified when **The Edit** is ready.
 
-### 5. Curate
+### 5. Archive
 
-She sees the contact sheet as a gallery. She can save individual shots to her library. She can discard the whole set. If she flags it within 5 minutes, no charge.
+She sees **The Edit** as a clean contact sheet. She can save individual shots to her **Archive**. She can discard the whole set. If she flags it within 5 minutes, no charge.
 
-She can also remix a saved shot. That starts a new Intention flow with the saved shot as a starting point.
+She can also remix a saved shot. That starts a new Brief flow with the saved shot as a starting point.
 
-Free tier puts a watermark on saved outputs. Paid tier is clean.
+Paid only. No free tier. No watermarks. The output is clean magazine-grade from the first pixel.
 
-## Pack Model
+## Drop Model
 
-A **Pack** is one execution. One confirmed Intention becomes one Contact Sheet.
+A **Drop** is one execution. One confirmed Intention becomes one **Edit** (8 variations). Think of it like a film roll: one scene, multiple takes, fully processed.
 
 **Pricing:**
 
-- **One-off Pack**: $X per 8-variation contact sheet.
-- **Weekly Subscription**: Y packs per week, billed monthly.
-- **Monthly Subscription**: Y packs per week, billed monthly.
-- **Quarterly Subscription**: Z packs per week, billed quarterly. Best value.
+| Offering | Price | What you get |
+|----------|-------|-------------|
+| **Single Drop** | $10 | One scene, fully produced. 8 shots. One-time purchase. |
+| **Monthly Access** | $29/mo | 4 Drops per month. Priority processing. For creators who post weekly. |
 
-Packs do not roll over. Unused packs expire at the end of the billing period.
+Drops do not roll over. Unused Drops expire at the end of the billing period. No weekly billing. No quarterly plans in v1.
 
-## Preset System
+The one-off Drop is the trial. Someone who isn't sure pays $10 once, sees the quality, and converts to Monthly Access. No free tier — the product is paid from the first pixel.
 
-A **Preset** is a JSON file bundled with the niche.
+## Scene Catalog
+
+A **Scene** is a JSON-defined setup bundled with the niche. (Internal term: **Preset**.)
 
 ```json
 {
@@ -122,7 +126,7 @@ A **Preset** is a JSON file bundled with the niche.
 }
 ```
 
-The framework renders presets as cards. New niches ship their own catalog by dropping JSON files into `/niches/{niche}/presets/`.
+Scenes are rendered as a browse-first card grid on the Create surface — magazine editorial energy, not a software catalog. New niches ship their own catalog by dropping JSON files into `/niches/{niche}/scenes/`.
 
 ## Curation Engine
 
@@ -142,7 +146,7 @@ Runs sync at creation time.
 
 - Input: Identity Profile + Style Profile + Preset or Prompt + optional Product Image.
 - LLM assembles a structured Intention with all fields.
-- Renders as natural language for the Intention Confirmation step.
+- Renders as natural language for **The Brief** step.
 
 ## Generation Engine
 
@@ -150,7 +154,7 @@ Runs sync at creation time.
 - Vision / curation: `@cf/google/gemma-4-26b-a4b-it` or `@cf/moonshot-ai/kimi-k2.6` if stronger reasoning needed.
 - Uses Identity Profile (image refs + text descriptions) as conditioning.
 - Uses Style Profile as style conditioning.
-- One confirmed Intention triggers N parallel generation calls, one per variation type. Results assembled into Contact Sheet.
+- One confirmed Intention triggers background batch generation calls. Results assembled into **The Edit**.
 
 ### Model Comparison
 
@@ -190,9 +194,9 @@ So v1 starts with gpt-image-2 for everything. Anchor image and variations. I'll 
 
 ### Frontend stack: Astro + Arrow JS, minimal React
 
-React is limited to the absolute minimum. The interactive app surfaces, intention confirmation, gallery, and creator dashboard are built with Arrow JS. A ~5KB reactive runtime. Tagged templates and `reactive()` state. No JSX, no compiler.
+React is limited to the absolute minimum. The interactive app surfaces, **The Brief**, Archive, and creator dashboard are built with Arrow JS. A ~5KB reactive runtime. Tagged templates and `reactive()` state. No JSX, no compiler.
 
-The Intention Confirmation is exactly what Arrow is built for. Live text editing where every field is a reactive expression. It fits the product better than React's re-render cycle.
+**The Brief** is exactly what Arrow is built for. Live text editing where every field is a reactive expression. It fits the product better than React's re-render cycle.
 
 Astro stays for static pages. Marketing, landing, docs. Arrow JS components mount as islands where interactivity is needed. No React islands. No JSX overhead.
 
@@ -202,20 +206,32 @@ I accept the trade-off. No shadcn. No Radix. No pre-built component library. Upl
 
 | Metric | What it measures |
 |--------|-----------------|
-| Activation | % of signups who complete onboarding (upload selfie set + style refs) |
-| Creation | % of activated users who generate a contact sheet within 7 days |
-| Retention | % of weekly subscribers who generate in 3 of 4 weeks |
-| Quality | % of contact sheets where user saves >= 1 variation |
-| Remix rate | % of saved variations that get remixed |
+| Activation | % of uploads who complete onboarding (selfie set + moodboard) |
+| Creation | % of activated users who process a Drop within 7 days |
+| Retention | % of Monthly Access users who process a Drop in 3 of 4 weeks |
+| Quality | % of Edits where user saves >= 1 shot |
+| Remix rate | % of saved shots that get remixed |
+
+## MVP Architecture Decisions
+
+1. **Intention Confirmation = Paragraph Preview.** A plain-language paragraph, inline-editable by clause. Not a form, not a dashboard. One Turn is communicated, not enforced.
+2. **Upload first, auth deferred.** Zero friction before photos land. Magic link required at first Drop creation. Orphaned uploads TTL 7 days.
+3. **Browse-first card grid for Scene discovery.** Scenes as editorial cards, not a command-palette search grid.
+4. **Background job table + batch generation.** Drops process variations in batches of 2–4 with retry logic. Frontend polls for progress. Not all 8 in parallel.
+5. **Paid-only from first Drop.** No free tier, no watermarks. The $10 Single Drop is the trial.
+6. **One-off + Subscription from launch.** Single Drop ($10) and Monthly Access ($29/mo, 4 Drops). Both Stripe SKUs.
+7. **Positioning: "Your photos, elevated."** Not AI. Not software. Magazine editorial with an invisible team. "Process" not "Generate." "The Brief" not "Prompt Preview."
 
 ## Phase 1: Lily (MVP)
 
 - Single niche: Instagram content for individual creators.
-- Five curated presets.
+- Six curated **Scenes** (browse-first card grid).
 - One person per generation.
-- One-turn confirmation.
-- Contact sheet: 8 variations.
-- One-off and monthly subscription pricing.
+- **The Brief**: paragraph preview, inline-editable, One Turn.
+- **The Edit**: 8 variations, background batch processing.
+- Auth: upload first, magic link deferred to first Drop.
+- Pricing: Single Drop ($10) + Monthly Access ($29/mo, 4 Drops).
+- Paid only. No free tier. No watermarks.
 - Web only.
 
 ## Phase 2: Framework
