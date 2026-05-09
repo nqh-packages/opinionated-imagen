@@ -3,10 +3,10 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "~/*": ["src/*"]
+      "~/*": ["core/src/*"]
     },
     "types": ["@cloudflare/workers-types", "vite/client"]
   },
-  "include": ["src/**/*"],
+  "include": ["core/src/**/*"],
   "exclude": ["dist", "node_modules"]
 }

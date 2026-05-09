@@ -6,10 +6,13 @@
   "scripts": {
     "dev": "concurrently \"pnpm:dev:astro\" \"pnpm:dev:api\" --names 'astro,api' --prefix-colors cyan,yellow",
     "dev:astro": "astro dev",
-    "dev:api": "wrangler dev functions/index.ts --compatibility-date=2025-04-01 --port=8787",
+    "dev:api": "wrangler dev core/functions/index.ts --compatibility-date=2025-04-01 --port=8787",
     "build": "astro build",
     "preview": "astro preview",
-    "typecheck": "tsc --noEmit && tsc --noEmit -p functions/tsconfig.json"
+    "typecheck": "tsc --noEmit && tsc --noEmit -p core/functions/tsconfig.json",
+    "deploy:ig": "NICHE=ig-content pnpm build && wrangler deploy",
+    "deploy:headshots": "NICHE=headshots pnpm build && wrangler deploy",
+    "deploy:dating": "NICHE=dating pnpm build && wrangler deploy"
   },
   "dependencies": {
     "@arrow-js/core": "^1.0.0",
