@@ -1,47 +1,85 @@
 # Models
 
-Reference for all AI models used in Opinionated Imagen. All run through Cloudflare Workers AI unless noted.
+Reference for all AI models used in Opinionated Imagen.
+
+## Architecture
+
+**Image generation models** run through **Cloudflare AI Gateway** (proxied to external providers). **Text/vision models** run on **native Workers AI** (Cloudflare's own GPU infrastructure).
+
+```
+Your Worker
+    │
+    ├──→ Image Generation ──→ AI Gateway ──→ OpenAI / Google / ByteDance
+    │                           (proxied)
+    │
+    └──→ Curation/Vision ──→ Workers AI (native)
+                               gemma, kimi, etc.
+```
+
+### Proxied vs Hosted
+
+| Model | Provider | Type | Infrastructure |
+|-------|----------|------|---------------|
+| `openai/gpt-image-2` | OpenAI | Proxied | AI Gateway → OpenAI |
+| `google/imagen-4` | Google | Proxied | AI Gateway → Google |
+| `bytedance/seedream-5-lite` | ByteDance | Proxied | AI Gateway → ByteDance |
+| `google/nano-banana-2` | Google | Proxied | AI Gateway → Google |
+| `gemma-4-26b-a4b-it` | Google | **Hosted** | Native Cloudflare GPUs |
+| `kimi-k2.6` | Moonshot AI | **Hosted** | Native Cloudflare GPUs |
+
+### Setup
+
+**No BYOK required.** Cloudflare has partnership/reseller agreements with providers. You do not need your own OpenAI API key or Google credentials.
+
+Steps:
+1. Enable Workers AI on your Cloudflare account
+2. Create an AI Gateway in the dashboard: `AI → AI Gateway → Create Gateway`
+3. Pass `{ gateway: { id: 'your-gateway-name' } }` in `env.AI.run()` calls
+
+The gateway name enables: request logging, analytics, caching, rate limiting, and fallback routing.
+
+---
 
 ## Image Generation
 
-### Primary: `openai/gpt-image-2`
+### Primary: `openai/gpt-image-2` (Proxied)
 
-The only model on Workers AI that supports true multi-image editing. Pass up to 16 base64-encoded images and the model blends subjects, styles, and references into one output.
+The only Workers AI image model that supports true multi-image editing. Pass up to 16 base64-encoded images and the model blends subjects, styles, and references into one output.
 
 **Use for:** Anchor image generation — combining Identity Profile (selfie set) + Style Profile (style refs) + Product Image + scene description into a single photorealistic image.
 
 | Parameter | Values | Notes |
 |-----------|--------|-------|
 | `prompt` | string (required) | Text description of the scene |
-| `images` | string[] (base64) | Up to 16 reference images. Raw base64 string or `data:image/{png\|jpeg\|webp};base64,...` URI |
+| `images` | string[] (base64) | Up to 16 reference images. Raw base64 or `data:image/{png\|jpeg\|webp};base64,...` URI |
 | `quality` | `"low"` / `"medium"` / `"high"` / `"auto"` | Start with `"medium"`. Use `"high"` for portraits, close-ups, identity-sensitive edits |
 | `size` | `"1024x1024"` / `"1024x1536"` / `"1536x1024"` / `"auto"` | Portrait: `1024x1536`, Landscape: `1536x1024`, Square: `1024x1024` |
 | `output_format` | `"png"` / `"webp"` / `"jpeg"` | WebP for smaller size, PNG for quality |
 | `background` | `"transparent"` / `"opaque"` / `"auto"` | Note: transparent not supported on this model |
 
-**Pricing:** Token-based
+**Pricing:** Token-based (billed through Cloudflare unified billing)
 - Input tokens: $5.00 / 1M
 - Input image tokens: $8.00 / 1M
 - Output image tokens: $30.00 / 1M
 - Output tokens: $10.00 / 1M
 
-**Multi-image edit pattern:**
+**Call pattern:**
 ```typescript
 const response = await env.AI.run(
   'openai/gpt-image-2',
   {
     prompt: 'A photorealistic candid photo...',
     images: [
-      selfieRef1,      // Identity: Lily's face
+      selfieRef1,      // Identity: face
       selfieRef2,
-      styleRef1,       // Style: her film grade
+      styleRef1,       // Style: aesthetic
       styleRef2,
       productImage,    // Optional: product
     ],
     quality: 'medium',
     size: '1024x1536',
   },
-  { gateway: { id: 'default' } }
+  { gateway: { id: 'default' } }  // AI Gateway required for proxied models
 );
 ```
 
@@ -54,7 +92,7 @@ const response = await env.AI.run(
 
 ---
 
-### Secondary (test): `bytedance/seedream-5-lite`
+### Secondary (test): `bytedance/seedream-5-lite` (Proxied)
 
 Faster and cheaper per image. Has `image_input[]` for variation from a reference. Docs show single-image variation only; the parameter is an array so multi-reference may work but is unverified.
 
@@ -69,13 +107,13 @@ Faster and cheaper per image. Has `image_input[]` for variation from a reference
 | `output_format` | `"png"` / `"jpeg"` | |
 | `max_images` | integer | Batch generation limit |
 
-**Pricing:** $0.035 / image
+**Pricing:** $0.035 / image (billed through Cloudflare)
 
 **Status:** Pending verification. Do not build production flows on this until multi-reference is confirmed.
 
 ---
 
-### Ruled Out
+### Ruled Out (Proxied)
 
 | Model | Why not |
 |-------|---------|
@@ -84,18 +122,18 @@ Faster and cheaper per image. Has `image_input[]` for variation from a reference
 
 ---
 
-## Vision / Curation
+## Vision / Curation (Hosted)
 
-### `google/gemma-4-26b-a4b-it`
+### `google/gemma-4-26b-a4b-it` (Hosted)
 
-Vision-capable model. Used for profile building and intention assembly.
+Vision-capable model running on Cloudflare's native GPU infrastructure.
 
 **Use for:**
 - Inspecting uploaded selfies → extracting face/body descriptors
 - Inspecting style references → extracting color palette, contrast, composition
 - Assembling structured Intention from Identity + Style + Prompt/Preset
 
-**Pattern:**
+**Call pattern:**
 ```typescript
 const response = await env.AI.run(
   'google/gemma-4-26b-a4b-it',
@@ -103,14 +141,14 @@ const response = await env.AI.run(
     messages: [
       { role: 'user', content: 'Describe the visual style of these images...' },
     ],
-  },
-  { gateway: { id: 'default' } }
+  }
+  // No gateway needed — native Workers AI
 );
 ```
 
 ---
 
-### `moonshot-ai/kimi-k2.6`
+### `moonshot-ai/kimi-k2.6` (Hosted)
 
 Stronger reasoning. Fallback when gemma-4 doesn't produce detailed enough extraction.
 
@@ -122,32 +160,32 @@ Stronger reasoning. Fallback when gemma-4 doesn't produce detailed enough extrac
 
 ```
 Onboard (Profile Builder)
-  → gemma-4-26b-a4b-it (vision)
-  → kimi-k2.6 (fallback)
+  → gemma-4-26b-a4b-it (hosted, vision)
+  → kimi-k2.6 (hosted, fallback)
 
 Create (Intention Assembler)
-  → gemma-4-26b-a4b-it (text + structured output)
+  → gemma-4-26b-a4b-it (hosted, text + structured output)
 
 Generate (Anchor Image)
-  → gpt-image-2 (multi-image edit)
+  → gpt-image-2 (proxied via AI Gateway)
   → quality: "medium" default, "high" for portraits
 
 Generate (Variations)
-  → gpt-image-2 (parallel calls)
-  → seedream-5-lite (test — if multi-ref verified)
+  → gpt-image-2 (proxied, parallel calls)
+  → seedream-5-lite (proxied, test — if multi-ref verified)
 ```
 
 ## Cost Estimates (per Contact Sheet)
 
 Assumptions: 8 variations, 1024x1536, medium quality
 
-| Step | Model | Calls | Est. Cost |
-|------|-------|-------|-----------|
-| Profile Builder | gemma-4 (vision) | 1 | negligible |
-| Intention Assembler | gemma-4 (text) | 1 | negligible |
-| Anchor Image | gpt-image-2 | 1 | ~$0.03–0.06 |
-| Variations | gpt-image-2 | 7 | ~$0.21–0.42 |
-| **Total** | | **9** | **~$0.24–0.48** |
+| Step | Model | Type | Calls | Est. Cost |
+|------|-------|------|-------|-----------|
+| Profile Builder | gemma-4 | Hosted | 1 | negligible |
+| Intention Assembler | gemma-4 | Hosted | 1 | negligible |
+| Anchor Image | gpt-image-2 | Proxied | 1 | ~$0.03–0.06 |
+| Variations | gpt-image-2 | Proxied | 7 | ~$0.21–0.42 |
+| **Total** | | | **9** | **~$0.24–0.48** |
 
 If seedream-5-lite works for variations: anchor ~$0.04, variations 7 × $0.035 = $0.245. Total ~$0.28.
 
