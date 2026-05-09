@@ -30,6 +30,13 @@ Read [PRODUCT.md](PRODUCT.md) for full product context and [CONTEXT.md](CONTEXT.
 - **Mobile first.** Every screen designed for phone viewport first, desktop second.
 - **App-like UX.** Design for installable PWA from day one (manifest, service worker, offline-aware). Native-feel gestures, safe areas, bottom sheets, not web-page scrolling.
 - **Expo-ready.** PWA architecture must port cleanly to React Native / Expo later. Avoid web-only APIs in app surfaces.
+- **No hand-rolled primitives.** Use shadcn/ui components (Button, Card, Input, Dialog, etc.). Custom CSS only for brand patterns and layout, not for reinventing accessible widgets.
+- **Design token SSOT.** No raw colors, sizes, or radii in component files. Use CSS variables from `src/styles/global.css` or semantic Tailwind tokens (`bg-primary`, `text-muted-foreground`). `text-[10px]`, `bg-[#ff0000]`, etc. are forbidden.
+- **No `console.log` in app source.** Use structured diagnostics with `error_code`, operation, context, retriability, and recovery hint. No `console.error()` as the sole handler — always pair with user-visible error state.
+- **No silent `.catch(() => {})`.** Annotate with `// @silent-catch reason:` or handle visibly. Every error state needs a recovery CTA (retry, refresh, navigate). No dead-end errors.
+- **Every async island wrapped in `<ErrorBoundary>`.** Dev: red overlay + stack. Prod: graceful fallback + retry action.
+- **Use `cn()` from `~/lib/utils`.** Never hand-roll `clsx` + `tailwind-merge` locally.
+- **No emojis in source code.** Use the app's icon stack (`@tabler/icons-react`) instead.
 - **One person per generation.** Multi-person is out of scope.
 - **One turn** of tweaking in the Intention Confirmation step. No prolonged dialogue.
 
