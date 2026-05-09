@@ -4,51 +4,54 @@
 
 Opinionated Imagen — a framework for creating niche market products in AI image generation. One engine, many products.
 
-Read [PRODUCT.md](PRODUCT.md) for the framework vision. Read [CONTEXT.md](CONTEXT.md) for the canonical domain language. Read [MODELS.md](MODELS.md) for AI model reference.
+Read [PRODUCT.md](PRODUCT.md) for the framework vision. Read [CONTEXT.md](CONTEXT.md) for the canonical domain language. Read [MODELS.md](MODELS.md) for AI model reference. Each niche has its own PRODUCT.md and CONTEXT.md under `niches/{niche}/`.
 
-## Project Structure
+## Structure Law
+
+The directory layout below is enforced. Every agent must maintain it.
 
 ```
-core/                       ← shared engine
-  src/                      ← Astro frontend
+core/                       ← All shared source code.
+  src/                      ← Astro frontend (shared across niches)
     components/ui/          ← shadcn/ui components
     islands/                ← React islands (OnboardApp, CreateApp, GalleryApp)
     layouts/                ← Astro layouts
     lib/                    ← Utilities (api.ts, utils.ts)
     pages/                  ← Astro pages
     styles/                 ← Tailwind CSS
-  functions/                ← Cloudflare Worker backend
-    index.ts                ← App entry, route mounting
-    middleware/auth.ts       ← requireAuth
+  functions/                ← Hono backend (shared across niches)
+    index.ts                ← App entry, route mounting, bindings
+    middleware/auth.ts      ← requireAuth
     lib/                    ← diagnostics, id, storage, email, scenes-data
     routes/                 ← auth, upload, profile, scenes
     migrations/             ← D1 SQL migrations
     scripts/                ← setup-lifecycle
-    AGENTS.md               ← backend-specific reference
+    AGENTS.md               ← Backend-specific reference (for Workers-only work)
 niches/
-  ig-content/               ← first market product
-    scenes/*.json           ← Scene definitions
-    PRODUCT.md              ← product vision for this niche
-    CONTEXT.md              ← user-facing term aliases
-    brand/                  ← design tokens, copy
-  headshots/                ← future
-  dating/                   ← future
-AGENTS.md                   ← this file — describes the framework
-CONTEXT.md                  ← canonical domain language (shared)
-MODELS.md                   ← shared AI model decisions
-PRODUCT.md                  ← framework vision (not niche-specific)
+  {niche}/                  ← One directory per market product
+    scenes/                 ← Scene/Preset JSON definitions
+    PRODUCT.md              ← Market vision. Price table, core flow, positioning.
+    CONTEXT.md              ← Maps user-facing terms to CONTEXT.md canon.
+    brand/                  ← Design tokens, copy assets.
+AGENTS.md                   ← This file. Root level only.
+CONTEXT.md                  ← Canonical domain terms. Do not add niche-specific terms here.
+MODELS.md                   ← Shared AI model decisions. Do not duplicate per niche.
+PRODUCT.md                  ← Framework vision. Do not add niche-specific content here.
+astro.config.mjs            ← Build config. srcDir must point to core/src/.
+package.json                ← Root build config. Scripts point to core/* paths.
 ```
 
-## How to Create a New Niche
+### Rules
 
-1. Copy the scene JSON files from an existing niche as a starting point
-2. Create `niches/{niche-name}/PRODUCT.md` describing the niche's market
-3. Create `niches/{niche-name}/CONTEXT.md` mapping user-facing terms to CONTEXT.md canon
-4. Create `niches/{niche-name}/brand/` with niche-specific design tokens
-5. Create a Cloudflare AI Gateway named `opinionated-imagen-{niche-name}`
-6. Add a deployment script in `package.json`: `deploy:{niche-name}`
-
-See `niches/ig-content/` as the reference implementation.
+| Rule | Why |
+|------|-----|
+| **No source code at root level.** All shared code lives in `core/`. | Root should only have configs, docs, and `niches/`. |
+| **No niche-specific terms in CONTEXT.md.** Root CONTEXT.md is canonical/shared only. Niche aliases go in `niches/{niche}/CONTEXT.md`. | SSOT for internal terms. User-facing language is per-niche. |
+| **Each niche must have PRODUCT.md + CONTEXT.md + brand/.** These are not optional. | Every market product needs its own vision, term mapping, and brand identity. |
+| **Niche CONTEXT.md must map every user-facing term to CONTEXT.md.** If a term is used in UI but absent from the niche's CONTEXT.md, it's a drift. | Prevents agents from inventing terms that don't map to canon. |
+| **API routes return CONTEXT.md terms, not user-facing terms.** Only the frontend translates. | One backend, N niches. API stays generic. |
+| **New file types at root require a justification comment in this file.** Config files, deploy scripts, and root docs are the only valid root-level entries. | Prevents root from accumulating misc files. |
+| **New niches add a script to package.json: `deploy:{niche}`.** Runs `NICHE={niche} pnpm build && wrangler deploy`. | Every niche must be deployable independently. |
 
 ## Stack
 
@@ -64,47 +67,40 @@ See `niches/ig-content/` as the reference implementation.
 | Vision/Curation | Cloudflare Workers AI — `google/gemma-4-26b-a4b-it`, `moonshot-ai/kimi-k2.6` (hosted) |
 | Auth | Email magic links (Cloudflare Email Workers) |
 | Payments | Stripe |
-| Sandboxed LLM code | Arrow JS Sandbox (`@arrow-js/sandbox`) — LLM-generated snippets only |
+| Sandboxed LLM code | Arrow JS Sandbox — LLM-generated snippets only |
 
 ## Setup
 
 ```bash
 pnpm install
-
-# Dev (Astro port 4321 + Worker port 8787)
-pnpm dev
-
-# Typecheck
+pnpm dev            # Astro port 4321 + Worker port 8787
 pnpm typecheck
+pnpm build
+```
 
-# Build + deploy IG niche
-pnpm deploy:ig
+## Deploy
+
+```bash
+# Each niche deploys independently
+pnpm deploy:ig        # NICHE=ig-content pnpm build && wrangler deploy
+pnpm deploy:headshots # (future)
+pnpm deploy:dating    # (future)
 
 # D1 migrations
 npx wrangler d1 migrations apply opinionated-imagen-db
 npx wrangler d1 migrations apply opinionated-imagen-db --remote
 ```
 
-## Deploying a Niche
-
-Run `pnpm build` to build the static site. Then deploy the Worker:
-
-```bash
-# Deploy IG niche
-NICHE=ig-content pnpm build && npx wrangler deploy
-
-# Deploy other niches (once they exist)
-NICHE=headshots pnpm build && npx wrangler deploy
-```
-
-The `NICHE` env var tells the Worker which niche config to load at runtime. Each niche deploys to its own domain.
+The `NICHE` env var selects which niche config the Worker loads at runtime. Each niche deploys to its own domain.
 
 ## API Routes
+
+Routes return CONTEXT.md canonical terms. Only the frontend maps to user-facing language per niche config.
 
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | `/api/health` | Health check |
-| GET | `/api/scenes` | List Scenes for the active niche |
+| GET | `/api/scenes` | List Presets for the active niche |
 | POST | `/api/upload/presigned` | Batch presigned upload URLs to R2 |
 | GET | `/api/profile/status?sessionToken=` | Poll session/profile build status |
 | POST | `/api/profile/build` | Trigger async profile building |
@@ -113,9 +109,11 @@ The `NICHE` env var tells the Worker which niche config to load at runtime. Each
 | GET | `/api/auth/me` | Return authenticated Creator or 401 |
 | POST | `/api/auth/logout` | Clear session cookie |
 
-## Domain Language
+All routes return structured JSON. Errors follow the diagnostic schema from `core/functions/lib/diagnostics.ts`.
 
-These are the canonical terms — used in all code, API contracts, and internal docs. Each niche overrides the user-facing labels via its own `CONTEXT.md`.
+## Domain Language (Canonical)
+
+These are the single source of truth. Code, API, and internal docs use these exclusively. See [CONTEXT.md](CONTEXT.md) for full definitions and relationship diagram.
 
 | Canonical Term | Avoid |
 |---------------|-------|
@@ -133,7 +131,7 @@ These are the canonical terms — used in all code, API contracts, and internal 
 | Contact Sheet | gallery, album, batch, pack output |
 | Variation | shot, frame, alternative |
 | Pack | credit, session, job, generation |
-| Gateway | opinionated-imagen-{niche}
+| Gateway | AI Gateway instance, named `opinionated-imagen-{niche}` |
 
 Resolved ambiguities:
 - "prompt" = freeform Creator input. Internal generation parameters = **Intention**
@@ -142,13 +140,28 @@ Resolved ambiguities:
 
 ## Code Style
 
-- **No `console.log`**. Use `core/functions/lib/diagnostics.ts` with `error_code`, `operation`, `context`, `retriable`, `recovery_hint`
-- **No silent `.catch(() => {})`**
-- **Every async island wrapped in `<ErrorBoundary>`**
-- **Use `cn()` from `~/lib/utils`** (`clsx` + `tailwind-merge`)
-- **No emojis** in source code. Use `@tabler/icons-react`
-- **Design token SSOT** — no raw colors in JSX
-- **Mobile first**
+- **No `console.log`**. Use `core/functions/lib/diagnostics.ts`.
+- **No silent `.catch(() => {})`**. Explain why in a comment.
+- **Every async island wrapped in `<ErrorBoundary>`**.
+- **Use `cn()` from `~core/src/lib/utils`** (`clsx` + `tailwind-merge`). Never hand-roll.
+- **No emojis** in source code. Use `@tabler/icons-react`.
+- **Design token SSOT**. No raw colors in JSX.
+- **Mobile first.**
+
+## Visual Standards (Product Level)
+
+- **No AI-generated look.** Every output must pass the "is this a photo?" test.
+- **Photorealistic by default.** Like iPhone or mirrorless camera.
+- **No perfection.** Pores, flyaways, wrinkles, uneven light.
+- **No generic stock posing.** Candid, moment-like shots.
+- **No composited-on-background feeling.** Subject and scene in the same physical space.
+
+The target: a friend took this photo with their phone.
+
+## Resources
+
+- `core/functions/AGENTS.md` — Backend API, D1 schema, binding types, R2 setup
+- `niches/ig-content/` — Reference implementation for the first niche
 
 ## Prompting References
 
