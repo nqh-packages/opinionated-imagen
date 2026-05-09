@@ -9,7 +9,8 @@
     "dev:api": "wrangler dev functions/index.ts --compatibility-date=2025-04-01 --port=8787",
     "build": "astro build",
     "preview": "astro preview",
-    "typecheck": "tsc --noEmit && tsc --noEmit -p functions/tsconfig.json"
+    "typecheck": "tsc --noEmit && tsc --noEmit -p functions/tsconfig.json",
+    "test": "vitest run"
   },
   "dependencies": {
     "@arrow-js/core": "^1.0.0",
@@ -42,6 +43,7 @@
     "tailwindcss": "^4.3.0",
     "typescript": "^5.8.0",
     "vite": "^8.0.0",
+    "vitest": "^4.1.5",
     "wrangler": "^4.10.0"
   },
   "pnpm": {
