@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 interface CompositionShot {
   type: string;
@@ -20,11 +20,65 @@ function composeSummary(plan: CompositionShot[]): string {
   return sorted.map((s) => `${s.ratio}× ${s.type}`).join(', ');
 }
 
+// --- Auth helpers ---
+
+type AuthState =
+  | { status: 'loading' }
+  | { status: 'authenticated'; email: string }
+  | { status: 'unauthenticated' };
+
+type AuthModalView =
+  | { view: 'hidden' }
+  | { view: 'email-input' }
+  | { view: 'magic-link-sent'; email: string }
+  | { view: 'error'; message: string };
+
+async function checkAuth(): Promise<AuthState> {
+  try {
+    const res = await fetch('/api/auth/me', { credentials: 'include' });
+    if (res.ok) {
+      const data = (await res.json()) as { email: string };
+      return { status: 'authenticated', email: data.email };
+    }
+    return { status: 'unauthenticated' };
+  } catch {
+    return { status: 'unauthenticated' };
+  }
+}
+
+interface MagicLinkResponse {
+  ok: boolean;
+  message?: string;
+}
+
+async function sendMagicLink(email: string): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const res = await fetch('/api/auth/magic-link', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    const data = (await res.json()) as MagicLinkResponse;
+    return { ok: data.ok ?? false, error: data.message };
+  } catch {
+    return { ok: false, error: 'Could not send sign-in link. Check your connection and try again.' };
+  }
+}
+
 export default function CreateApp() {
   const [scenes, setScenes] = useState<Scene[]>([]);
   const [selected, setSelected] = useState<Scene | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [auth, setAuth] = useState<AuthState>({ status: 'loading' });
+  const [authModal, setAuthModal] = useState<AuthModalView>({ view: 'hidden' });
+  const [email, setEmail] = useState('');
+  const [sending, setSending] = useState(false);
+
+  // Check auth on mount
+  useEffect(() => {
+    checkAuth().then(setAuth);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -55,6 +109,57 @@ export default function CreateApp() {
   const handleSelect = (scene: Scene) => {
     setSelected((prev) => (prev?.id === scene.id ? null : scene));
   };
+
+  const handleProcessDrop = useCallback(async () => {
+    // Re-check auth to be sure
+    const currentAuth = await checkAuth();
+    setAuth(currentAuth);
+
+    if (currentAuth.status === 'authenticated') {
+      // Future: proceed to Drop creation flow
+      setAuthModal({ view: 'error', message: 'Drop creation is coming soon.' });
+    } else {
+      setAuthModal({ view: 'email-input' });
+    }
+  }, []);
+
+  const handleSendMagicLink = useCallback(async () => {
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setAuthModal({ view: 'error', message: 'Enter a valid email address.' });
+      return;
+    }
+
+    setSending(true);
+    setAuthModal({ view: 'email-input' }); // show loading state by staying on this view
+
+    const result = await sendMagicLink(email);
+
+    if (result.ok) {
+      setAuthModal({ view: 'magic-link-sent', email });
+    } else {
+      setAuthModal({ view: 'error', message: result.error || 'Something went wrong. Try again.' });
+    }
+
+    setSending(false);
+  }, [email]);
+
+  // Re-check auth after returning from magic link redirect
+  useEffect(() => {
+    if (authModal.view === 'magic-link-sent') {
+      // Poll for session on visibility change (user returns from email)
+      const handleVisibility = async () => {
+        if (document.visibilityState === 'visible') {
+          const currentAuth = await checkAuth();
+          setAuth(currentAuth);
+          if (currentAuth.status === 'authenticated') {
+            setAuthModal({ view: 'hidden' });
+          }
+        }
+      };
+      document.addEventListener('visibilitychange', handleVisibility);
+      return () => document.removeEventListener('visibilitychange', handleVisibility);
+    }
+  }, [authModal, auth.status]);
 
   // --- Loading state ---
   if (loading) {
@@ -119,7 +224,7 @@ export default function CreateApp() {
         ))}
       </div>
 
-      {/* The Brief panel */}
+      {/* The Brief panel + Process Drop */}
       {selected && (
         <div className="mx-auto max-w-prose space-y-4 rounded-xl border border-border bg-card px-8 py-8">
           <h2 className="text-xl font-semibold tracking-tight">{selected.name}</h2>
@@ -134,6 +239,104 @@ export default function CreateApp() {
               <span className="font-medium text-foreground">Shots:</span>{' '}
               {selected.shotCount} total
             </p>
+          </div>
+
+          {/* Process Drop button */}
+          <div className="flex justify-end border-t border-border pt-4">
+            <button
+              onClick={handleProcessDrop}
+              disabled={auth.status === 'loading'}
+              className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-6 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+            >
+              {auth.status === 'loading' ? 'Checking…' : 'Process Drop'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Auth modal overlay */}
+      {authModal.view !== 'hidden' && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-sm rounded-xl border border-border bg-card px-8 py-8 shadow-lg">
+            {authModal.view === 'email-input' && (
+              <div className="space-y-5">
+                <div>
+                  <h2 className="text-lg font-semibold tracking-tight">Sign in to continue</h2>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Enter your email to receive a sign-in link.
+                  </p>
+                </div>
+
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  disabled={sending}
+                  className="block w-full rounded-md border border-border bg-background px-3.5 py-2.5 text-sm outline-none placeholder:text-muted-foreground/60 focus:border-primary focus:ring-1 focus:ring-primary disabled:opacity-50"
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleSendMagicLink(); }}
+                  autoFocus
+                />
+
+                <button
+                  onClick={handleSendMagicLink}
+                  disabled={sending}
+                  className="inline-flex w-full h-10 items-center justify-center rounded-md bg-primary px-5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+                >
+                  {sending ? 'Sending…' : 'Send sign-in link'}
+                </button>
+
+                <button
+                  onClick={() => { setAuthModal({ view: 'hidden' }); setEmail(''); }}
+                  className="block w-full text-center text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+
+            {authModal.view === 'magic-link-sent' && (
+              <div className="space-y-5 text-center">
+                <h2 className="text-lg font-semibold tracking-tight">Check your email</h2>
+                <p className="text-sm text-muted-foreground">
+                  We sent a sign-in link to <span className="font-medium text-foreground">{authModal.email}</span>.
+                  It expires in 15 minutes.
+                </p>
+                <p className="text-xs text-muted-foreground/70">
+                  After clicking the link, you&apos;ll be signed in automatically.
+                </p>
+
+                <button
+                  onClick={() => { setAuthModal({ view: 'hidden' }); setEmail(''); }}
+                  className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                >
+                  Done
+                </button>
+              </div>
+            )}
+
+            {authModal.view === 'error' && (
+              <div className="space-y-5 text-center">
+                <h2 className="text-lg font-semibold tracking-tight text-destructive">Something went wrong</h2>
+                <p className="text-sm text-muted-foreground">{authModal.message}</p>
+
+                <button
+                  onClick={() => setAuthModal({ view: 'hidden' })}
+                  className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                >
+                  Close
+                </button>
+
+                {authModal.message !== 'Drop creation is coming soon.' && (
+                  <button
+                    onClick={() => setAuthModal({ view: 'email-input' })}
+                    className="block w-full text-center text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                  >
+                    Try again
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}
