@@ -1,5 +1,6 @@
 allowBuilds:
   esbuild: false
+  msw: set this to true or false
   sharp: false
   workerd: false
 onlyBuiltDependencies:
