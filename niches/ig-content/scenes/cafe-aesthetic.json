@@ -1,0 +1,14 @@
+{
+  "id": "cafe-aesthetic",
+  "name": "Cafe Aesthetic",
+  "description": "Relaxed cafe moments — coffee, window light, candid",
+  "baseScene": "A person sitting at a cafe table with a coffee cup, bathed in natural window light. Warm tones, film-like grain, soft shadows. The scene captures an intimate, unhurried moment — the kind of photo that feels like a memory more than a setup.",
+  "tags": ["warm", "candid"],
+  "compositionPlan": [
+    { "type": "Seated portrait", "ratio": 3 },
+    { "type": "Candid over-shoulder", "ratio": 2 },
+    { "type": "Detail shot (hands, cup, steam)", "ratio": 2 },
+    { "type": "Wide environment", "ratio": 1 }
+  ],
+  "requiresProductImage": false
+}
