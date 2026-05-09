@@ -10,7 +10,7 @@ import type { StorageEnv } from '../lib/storage';
 
 type Bindings = StorageEnv & {
   DB: D1Database;
-};
+} & { R2_SESSION_TOKEN?: string };
 
 const uploadApp = new Hono<{ Bindings: Bindings }>();
 
@@ -96,6 +96,7 @@ uploadApp.post('/presigned', async (c) => {
       {
         R2_ACCESS_KEY_ID: c.env.R2_ACCESS_KEY_ID,
         R2_SECRET_ACCESS_KEY: c.env.R2_SECRET_ACCESS_KEY,
+        R2_SESSION_TOKEN: c.env.R2_SESSION_TOKEN,
         ACCOUNT_ID: c.env.ACCOUNT_ID,
       },
       sessionToken,

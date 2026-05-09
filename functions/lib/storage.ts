@@ -8,6 +8,7 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 interface StorageEnv {
   R2_ACCESS_KEY_ID: string;
   R2_SECRET_ACCESS_KEY: string;
+  R2_SESSION_TOKEN?: string;
   ACCOUNT_ID: string;
 }
 
@@ -31,6 +32,7 @@ function getS3Client(env: StorageEnv): S3Client {
       credentials: {
         accessKeyId: env.R2_ACCESS_KEY_ID,
         secretAccessKey: env.R2_SECRET_ACCESS_KEY,
+        sessionToken: env.R2_SESSION_TOKEN,
       },
     });
   }
