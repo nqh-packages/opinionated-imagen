@@ -77,16 +77,24 @@ authApp.post('/magic-link', async (c) => {
     const origin = c.req.header('Origin') || `https://${c.req.header('Host')}`;
     const verifyUrl = `${origin}/auth/verify?token=${encodeURIComponent(token)}`;
 
-    // Send email
+    // Send email (best-effort — token is already stored)
     const emailContent = buildMagicLinkEmail(verifyUrl);
     const mailFrom = c.env.MAIL_FROM || 'auth@bybrandr.com';
-    await c.env.EMAIL.send({
-      from: mailFrom,
-      to: email,
-      subject: emailContent.subject,
-      html: emailContent.html,
-    });
+    try {
+      await c.env.EMAIL.send({
+        from: mailFrom,
+        to: email,
+        subject: emailContent.subject,
+        html: emailContent.html,
+      });
+    } catch (sendErr) {
+      const msg = sendErr instanceof Error ? sendErr.message : 'Unknown error';
+      // Diagnostic: email send failed but token is still valid
+      console.warn(`[MAGIC_LINK] email send failed for ${email}: ${msg}`);
+    }
 
+    // Always return success — do not reveal whether email send succeeded
+    // or whether the email is registered
     return c.json({ ok: true }, 200);
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';
