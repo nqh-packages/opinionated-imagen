@@ -20,27 +20,35 @@ She is not a prompt engineer.
 
 ## Core Flow
 
-### 1. Onboard
+### 1. Onboard — Step 1: Identity
 
-Lily uploads her **Selfie Set** — photos of herself, different angles and expressions. She uploads her **Moodboard** — photos she likes, her own past posts, inspiration.
+Lily uploads her **Selfie Set** — utility photos that clearly show her face and body. At least 10. These don't need to be flattering — just clear.
 
-Onboarding is not instant. She gets notified when it's ready.
+Behind the scenes: the system starts extracting her **Identity Profile** (face descriptors + hidden multi-angle reference portrait sheet). She never sees this.
 
-### 2. Create
+### 2. Onboard — Step 2: Style
 
-She browses **Scenes** or types freeform. "Cafe Aesthetic." "Golden Hour Portrait." "Me at a basketball court, golden hour, wearing my Nikes."
+Lily picks a **Vibe** (a curated style preset — film, cinematic, warm tones, etc.) presented as visual cards with 4 example images each. She picks the one that matches her aesthetic.
 
-### 3. The Brief
+Alternative: if she has her own taste references, she taps "Upload my style" and uploads photos she likes. The system extracts her personal aesthetic automatically.
+
+Result: one consistent style is locked for everything she creates.
+
+### 3. Create
+
+She arrives at her dashboard. Profile is built. She browses **Scenes** or types freeform. "Cafe Aesthetic." "Golden Hour Portrait." "Me at a basketball court, golden hour, wearing my Nikes."
+
+### 4. The Brief
 
 The system answers with a plain-language paragraph: "You at a warm cafe table, morning window light. Muted-film grade. 8 shots: 3 seated, 2 candid, 2 detail, 1 wide."
 
 Every clause is editable. She tweaks once, or not at all. Then she hits Process. No preview image. Just confirmation of what the system understood.
 
-### 4. Process
+### 5. Process
 
 The system generates against the confirmed Brief. The Edit comes back in a few minutes.
 
-### 5. Archive
+### 6. Archive
 
 She sees The Edit. She saves shots to her Archive. She discards what she doesn't want. She can remix a saved shot into a new Brief.
 
