@@ -28,3 +28,4 @@ wrangler.toml
 .DS_Store
 .agents/
 .worktrees
+codex-scripts/
