@@ -89,3 +89,61 @@ export function validateFileSize(sizeBytes: number): boolean {
 
 export const MAX_SIZE_BYTES = MAX_FILE_SIZE_BYTES;
 export type { StorageEnv };
+
+// ─── R2 Download Helpers (for Workers AI extraction) ───────────────
+// These use the Workers R2 bucket binding (env.STORAGE), not S3 SDK.
+
+/**
+ * List all selfie objects for a session, ordered by creation time.
+ */
+export async function listSelfieObjects(
+  sessionToken: string,
+  storage: R2Bucket,
+  limit = 10,
+): Promise<R2Object[]> {
+  const objects = await storage.list({
+    prefix: `uploads/${sessionToken}/selfie/`,
+    limit,
+  });
+
+  // Sort by uploaded date ascending for consistent ordering
+  const sorted = [...objects.objects].sort(
+    (a, b) => a.uploaded.getTime() - b.uploaded.getTime(),
+  );
+
+  return sorted.slice(0, limit);
+}
+
+/**
+ * Download an R2 object and convert to base64.
+ * Returns null if the object is too large (>1MB) or cannot be read.
+ */
+export async function downloadAsBase64(
+  r2Object: R2Object,
+  storage: R2Bucket,
+): Promise<{ base64: string; mediaType: string } | null> {
+  // Memory safeguard: skip images >1MB
+  if (r2Object.size > 1_000_000) {
+    return null;
+  }
+
+  const body = await storage.get(r2Object.key);
+  if (!body) {
+    return null;
+  }
+
+  const arrayBuffer = await body.arrayBuffer();
+  const bytes = new Uint8Array(arrayBuffer);
+
+  // Convert to base64
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  const base64 = btoa(binary);
+
+  // Infer media type from content type or filename
+  const mediaType = r2Object.httpMetadata?.contentType ?? 'image/jpeg';
+
+  return { base64, mediaType };
+}
