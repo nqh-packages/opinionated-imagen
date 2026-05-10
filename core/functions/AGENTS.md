@@ -161,6 +161,41 @@ type Bindings = {
 - **Session** — anonymous, pre-auth identity (UUID in localStorage)
 - **Drop** — one execution unit (one Brief → one Edit of 8 shots)
 
+## Identity Extraction Engine
+
+The identity extraction pipeline lives in `lib/vision.ts` and `lib/prompts.ts`. It runs in the `POST /api/profile/build` handler via `c.executionCtx.waitUntil()` — the handler returns immediately, and extraction continues in the background. The frontend polls `GET /api/profile/status` until `status: 'ready'`.
+
+### Pipeline
+
+1. `listSelfieObjects(sessionToken, STORAGE)` — lists R2 objects at `uploads/{sessionToken}/selfie/`
+2. `downloadAsBase64(r2Object, STORAGE)` — downloads and converts to base64 (skips >1MB images as memory safeguard)
+3. `extractIdentity(env, base64Photos)` — calls `@cf/google/gemma-4-26b-a4b-it` with vision (OpenAI-compatible `image_url` format, not `source` format)
+4. Writes text description to D1 `identity_profiles` table
+5. `generateReferenceSheet(env, description, sessionToken)` — calls `openai/gpt-image-2` via AI Gateway (requires `opinionated-imagen-ig` gateway with OpenAI API key configured)
+6. Reference sheet is non-critical — pipeline degrades gracefully to text-only
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `lib/prompts.ts` | Production identity extraction prompt + reference sheet prompt builder |
+| `lib/vision.ts` | `extractIdentity`, `generateReferenceSheet`, `buildIdentityProfile` |
+| `routes/profile.ts` | Status polling + build trigger with extraction wired in |
+
+### Model Names (Workers AI)
+
+Model names in `env.AI.run()` use `@cf/<provider>/<model>` format, NOT the shorthand format:
+- ✅ `'@cf/google/gemma-4-26b-a4b-it'` (vision via `messages` with `image_url`)
+- ✅ `'@cf/moonshotai/kimi-k2.6'` (fallback)
+- ✅ `'openai/gpt-image-2'` (proxied via AI Gateway, needs gateway config)
+
+### Vision Input Format
+
+Do NOT use the `source` format (`type: 'base64'`, `media_type`, `data`). Use the OpenAI-compatible `image_url` format:
+```typescript
+{ type: 'image_url', image_url: { url: `data:${mediaType};base64,${base64}` } }
+```
+
 ## Testing
 
 No test framework installed yet. When adding tests:
@@ -175,6 +210,18 @@ Test patterns to follow:
 - Test handlers in isolation by constructing Hono `c` objects.
 - Use the diagnostic error builders to assert error shapes.
 - Tests are code: reusable fixtures for session tokens, file lists, and API payloads.
+
+### Identity Profile Verification Gate
+
+The product requires persistent character identity across generations. The canonical test subject for verifying identity extraction is the product creator (Huy).
+
+- **Source photos:** `~/.agents/skills/huy-face/photos/` (9 photos, multiple angles/lighting)
+- **Ground truth:** `~/.agents/skills/huy-face/huy-facial-profile.json` (11 tracked features)
+- **Verification script:** `functions/scripts/verify-identity-profile.ts` (gitignored)
+- **Gate:** ≥9/11 features must match ground truth
+- **Reference sheet gate:** 4/4 visual criteria (same person, consistent angles, would stranger agree)
+
+Run `npx tsx core/functions/scripts/verify-identity-profile.ts` after any prompt or model change to verify identity persistence.
 
 ## wrangler.toml (gitignored)
 

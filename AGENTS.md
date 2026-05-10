@@ -142,6 +142,7 @@ Resolved ambiguities:
 
 - **No `console.log`**. Use `core/functions/lib/diagnostics.ts`.
 - **No silent `.catch(() => {})`**. Explain why in a comment.
+- **Model names in code use `@cf/` prefix.** Workers AI model names follow `@cf/<provider>/<model>` format (e.g. `@cf/google/gemma-4-26b-a4b-it`). The shorthand format (`google/gemma-...`) does not work in `env.AI.run()`. See `MODELS.md`.
 - **Every async island wrapped in `<ErrorBoundary>`**.
 - **Use `cn()` from `~core/src/lib/utils`** (`clsx` + `tailwind-merge`). Never hand-roll.
 - **No emojis** in source code. Use `@tabler/icons-react`.

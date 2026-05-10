@@ -4,12 +4,17 @@
 
 import { Hono } from 'hono';
 import { notFound, conflict, preconditionFailed, serviceUnavailable } from '../lib/diagnostics';
+import { buildIdentityProfile } from '../lib/vision';
 
 type Bindings = {
   DB: D1Database;
+  STORAGE: R2Bucket;
+  AI: Ai;
 };
 
-const profileApp = new Hono<{ Bindings: Bindings }>();
+type ProfileVariables = {};
+
+const profileApp = new Hono<{ Bindings: Bindings; Variables: ProfileVariables }>();
 
 const MIN_SELFIES = 10;
 const MIN_MOODBOARD = 5;
@@ -108,10 +113,43 @@ profileApp.post('/build', async (c) => {
       ), 422);
     }
 
-    // Transition state
+    // Transition state to building_profile
     await c.env.DB.prepare(
       "UPDATE sessions SET status = 'building_profile', updated_at = datetime('now') WHERE token = ?1",
     ).bind(sessionToken).run();
+
+    // Return 200 immediately — frontend starts polling
+    // Identity extraction runs in the background via waitUntil
+    try {
+      if (typeof c.executionCtx?.waitUntil === 'function') {
+        c.executionCtx.waitUntil(
+          (async () => {
+            try {
+              const result = await buildIdentityProfile(
+                { AI: c.env.AI as any, STORAGE: c.env.STORAGE, DB: c.env.DB },
+                sessionToken,
+              );
+
+              if (result.success) {
+                await c.env.DB.prepare(
+                  "UPDATE sessions SET status = 'ready', updated_at = datetime('now') WHERE token = ?1",
+                ).bind(sessionToken).run();
+              } else {
+                await c.env.DB.prepare(
+                  "UPDATE sessions SET status = 'error', updated_at = datetime('now') WHERE token = ?1",
+                ).bind(sessionToken).run();
+              }
+            } catch (err) {
+              await c.env.DB.prepare(
+                "UPDATE sessions SET status = 'error', updated_at = datetime('now') WHERE token = ?1",
+              ).bind(sessionToken).run();
+            }
+          })(),
+        );
+      }
+    } catch {
+      // executionCtx not available (e.g., test environment)
+    }
 
     return c.json({ status: 'building_profile' }, 200);
   } catch (err) {
