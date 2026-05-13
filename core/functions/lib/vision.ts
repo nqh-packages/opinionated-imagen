@@ -16,7 +16,7 @@ import { getProductWorkspace } from "../generated/products";
 
 export interface IdentityExtractionResult {
   description: string;
-  modelUsed: "kimi-k2.5" | "gemma-4-26b-a4b-it";
+  modelUsed: "kimi-k2.5" | "openai:gpt-4.1-mini";
   extractionMs: number;
   error?: string;
 }
@@ -37,6 +37,15 @@ interface ExtractionEnv {
   NICHE?: string;
 }
 
+type VisionEnv = {
+  AI: Ai;
+  PRODUCT_ID?: string;
+  NICHE?: string;
+};
+
+const KIMI_EXTRACTION_TIMEOUT_MS = 25_000;
+const GATEWAY_EXTRACTION_TIMEOUT_MS = 45_000;
+
 // ─── Identity Extraction ───────────────────────────────────────────
 
 /**
@@ -44,31 +53,31 @@ interface ExtractionEnv {
  * a structured text description of the person's appearance.
  */
 export async function extractIdentity(
-  env: { AI: Ai },
+  env: VisionEnv,
   base64Photos: { base64: string; mediaType: string }[],
 ): Promise<IdentityExtractionResult> {
   const start = Date.now();
 
   try {
-    const text = await extractWithKimi(
+    const extraction = await extractWithFallback(
       env,
       base64Photos,
       IDENTITY_EXTRACTION_PROMPT,
     );
     const elapsed = Date.now() - start;
 
-    if (!text || text.length < 30) {
+    if (!extraction.text || extraction.text.length < 30) {
       return {
         description: "",
-        modelUsed: "kimi-k2.5",
+        modelUsed: extraction.modelUsed,
         extractionMs: elapsed,
-        error: "Empty description from kimi-k2.5",
+        error: `Empty description from ${extraction.modelUsed}`,
       };
     }
 
     return {
-      description: text,
-      modelUsed: "kimi-k2.5",
+      description: extraction.text,
+      modelUsed: extraction.modelUsed,
       extractionMs: elapsed,
     };
   } catch (err) {
@@ -84,31 +93,31 @@ export async function extractIdentity(
 }
 
 export async function extractStyle(
-  env: { AI: Ai },
+  env: VisionEnv,
   base64Photos: { base64: string; mediaType: string }[],
 ): Promise<StyleExtractionResult> {
   const start = Date.now();
 
   try {
-    const text = await extractWithKimi(
+    const extraction = await extractWithFallback(
       env,
       base64Photos,
       STYLE_EXTRACTION_PROMPT,
     );
     const elapsed = Date.now() - start;
 
-    if (!text || text.length < 30) {
+    if (!extraction.text || extraction.text.length < 30) {
       return {
         description: "",
-        modelUsed: "kimi-k2.5",
+        modelUsed: extraction.modelUsed,
         extractionMs: elapsed,
-        error: "Empty style description from kimi-k2.5",
+        error: `Empty style description from ${extraction.modelUsed}`,
       };
     }
 
     return {
-      description: text,
-      modelUsed: "kimi-k2.5",
+      description: extraction.text,
+      modelUsed: extraction.modelUsed,
       extractionMs: elapsed,
     };
   } catch (err) {
@@ -123,25 +132,101 @@ export async function extractStyle(
   }
 }
 
+async function extractWithFallback(
+  env: VisionEnv,
+  base64Photos: { base64: string; mediaType: string }[],
+  prompt: string,
+): Promise<{ text: string; modelUsed: IdentityExtractionResult["modelUsed"] }> {
+  try {
+    const text = await withTimeout(
+      extractWithKimi(env, base64Photos, prompt),
+      KIMI_EXTRACTION_TIMEOUT_MS,
+      "kimi-k2.5 extraction timed out",
+    );
+    if (text.length >= 30) {
+      return { text, modelUsed: "kimi-k2.5" };
+    }
+  } catch {
+    // Fall through to the Gateway route. The caller records the final model.
+  }
+
+  return {
+    text: await withTimeout(
+      extractWithOpenAiVision(env, base64Photos, prompt),
+      GATEWAY_EXTRACTION_TIMEOUT_MS,
+      "openai:gpt-4.1-mini extraction timed out",
+    ),
+    modelUsed: "openai:gpt-4.1-mini",
+  };
+}
+
 async function extractWithKimi(
-  env: { AI: Ai },
+  env: VisionEnv,
   base64Photos: { base64: string; mediaType: string }[],
   prompt: string,
 ): Promise<string> {
   const content = [
+    { type: "text" as const, text: prompt },
     ...base64Photos.slice(0, 1).map((p) => ({
       type: "image_url" as const,
       image_url: {
         url: `data:${p.mediaType};base64,${p.base64}`,
       },
     })),
-    { type: "text" as const, text: prompt },
   ];
 
   const response = await env.AI.run("@cf/moonshotai/kimi-k2.5", {
     messages: [{ role: "user", content } as never],
+    max_completion_tokens: 700,
+    temperature: 0.2,
   });
   return readTextResponse(response);
+}
+
+async function extractWithOpenAiVision(
+  env: VisionEnv,
+  base64Photos: { base64: string; mediaType: string }[],
+  prompt: string,
+): Promise<string> {
+  const gatewayName = getProductWorkspace(
+    env.PRODUCT_ID ?? env.NICHE ?? "ig-content",
+  ).manifest.gatewayId;
+  const content = [
+    { type: "text", text: prompt },
+    ...base64Photos.slice(0, 2).map((p) => ({
+      type: "image_url",
+      image_url: {
+        url: `data:${p.mediaType};base64,${p.base64}`,
+        detail: "low",
+      },
+    })),
+  ];
+  const response = await env.AI.gateway(gatewayName).run(
+    {
+      provider: "openai",
+      endpoint: "chat/completions",
+      headers: { "Content-Type": "application/json" },
+      query: {
+        model: "gpt-4.1-mini",
+        messages: [{ role: "user", content }],
+        max_tokens: 700,
+        temperature: 0.2,
+      },
+    },
+    {
+      gateway: {
+        id: gatewayName,
+        requestTimeoutMs: GATEWAY_EXTRACTION_TIMEOUT_MS,
+        collectLog: true,
+      },
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(`Gateway vision extraction failed: ${response.status}`);
+  }
+
+  return readTextResponse(await response.json());
 }
 
 // ─── Reference Sheet Generation ────────────────────────────────────
@@ -199,10 +284,32 @@ export async function generateReferenceSheet(
 
 function readTextResponse(response: unknown): string {
   if (typeof response !== "object" || !response) return "";
-  const data = response as { response?: unknown; text?: unknown };
+  const data = response as {
+    response?: unknown;
+    text?: unknown;
+    choices?: { message?: { content?: unknown } }[];
+  };
   if (typeof data.response === "string") return data.response;
   if (typeof data.text === "string") return data.text;
+  const firstMessage = data.choices?.[0]?.message?.content;
+  if (typeof firstMessage === "string") return firstMessage;
   return "";
+}
+
+async function withTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  message: string,
+): Promise<T> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error(message)), timeoutMs);
+  });
+  try {
+    return await Promise.race([promise, timeout]);
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+  }
 }
 
 export function readImageBase64(response: unknown): string {

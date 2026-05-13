@@ -41,8 +41,8 @@ describe("extractIdentity()", () => {
     expect(result.error).toBeUndefined();
   });
 
-  // 2. Empty model output is treated as extraction failure
-  it("returns error when Kimi returns empty", async () => {
+  // 2. Empty Kimi output falls through to the Gateway route
+  it("falls back to Gateway vision when Kimi returns empty", async () => {
     const ai = mockAi({
       "@cf/moonshotai/kimi-k2.5": { response: "" },
     });
@@ -51,13 +51,13 @@ describe("extractIdentity()", () => {
       { base64: "fakebase64", mediaType: "image/jpeg" },
     ]);
 
-    expect(result.description).toBe("");
-    expect(result.error).toBeTruthy();
-    expect(result.modelUsed).toBe("kimi-k2.5");
+    expect(result.description).toBeTruthy();
+    expect(result.error).toBeUndefined();
+    expect(result.modelUsed).toBe("openai:gpt-4.1-mini");
   });
 
-  // 3. Model unavailable: returns error
-  it("returns error when Kimi is unavailable", async () => {
+  // 3. Kimi unavailable falls through to the Gateway route
+  it("falls back to Gateway vision when Kimi is unavailable", async () => {
     const ai = mockAi(
       { "@cf/moonshotai/kimi-k2.5": { response: "" } },
       { "@cf/moonshotai/kimi-k2.5": "Model unavailable" },
@@ -67,27 +67,19 @@ describe("extractIdentity()", () => {
       { base64: "fakebase64", mediaType: "image/jpeg" },
     ]);
 
-    expect(result.description).toBe("");
-    expect(result.error).toBeTruthy();
+    expect(result.description).toBeTruthy();
+    expect(result.modelUsed).toBe("openai:gpt-4.1-mini");
   });
 
-  // 4. Kimi throws error
-  it("returns error when Kimi throws", async () => {
-    const ai = mockAi({}, { "@cf/moonshotai/kimi-k2.5": "AI service timeout" });
-
-    const result = await extractIdentity({ AI: ai as any }, [
-      { base64: "fakebase64", mediaType: "image/jpeg" },
-    ]);
-
-    expect(result.description).toBe("");
-    expect(result.error).toBeTruthy();
-  });
-
-  // 5. Short description treated as failure
-  it("treats very short response as failure", async () => {
-    const ai = mockAi({
-      "@cf/moonshotai/kimi-k2.5": { response: "Hi" },
-    });
+  // 4. Both model routes unavailable: returns error
+  it("returns error when both extraction routes fail", async () => {
+    const ai = mockAi(
+      {},
+      {
+        "@cf/moonshotai/kimi-k2.5": "AI service timeout",
+        "gateway:openai": "Gateway unavailable",
+      },
+    );
 
     const result = await extractIdentity({ AI: ai as any }, [
       { base64: "fakebase64", mediaType: "image/jpeg" },
@@ -96,6 +88,21 @@ describe("extractIdentity()", () => {
     expect(result.description).toBe("");
     expect(result.error).toBeTruthy();
     expect(result.modelUsed).toBe("kimi-k2.5");
+  });
+
+  // 5. Short Kimi response falls through to the Gateway route
+  it("falls back to Gateway vision for very short Kimi response", async () => {
+    const ai = mockAi({
+      "@cf/moonshotai/kimi-k2.5": { response: "Hi" },
+    });
+
+    const result = await extractIdentity({ AI: ai as any }, [
+      { base64: "fakebase64", mediaType: "image/jpeg" },
+    ]);
+
+    expect(result.description).toBeTruthy();
+    expect(result.error).toBeUndefined();
+    expect(result.modelUsed).toBe("openai:gpt-4.1-mini");
   });
 });
 
@@ -256,7 +263,10 @@ describe("buildIdentityProfile()", () => {
   it("returns failure when vision extraction fails entirely", async () => {
     const ai = mockAi(
       { "@cf/moonshotai/kimi-k2.5": { response: "" } },
-      { "@cf/moonshotai/kimi-k2.5": "Model unavailable" },
+      {
+        "@cf/moonshotai/kimi-k2.5": "Model unavailable",
+        "gateway:openai": "Gateway unavailable",
+      },
     );
     const storage = mockR2(createSelfieObjects(10));
     const db = mockD1();

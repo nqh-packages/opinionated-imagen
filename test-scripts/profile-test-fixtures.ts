@@ -112,6 +112,18 @@ export function mockAi(
       if (errors?.[model]) throw new Error(errors[model]);
       return responses[model] ?? { response: "Mock AI response" };
     },
+    gateway: (_gatewayId: string) => ({
+      run: async () => {
+        if (errors?.["gateway:openai"]) {
+          return new Response(errors["gateway:openai"], { status: 502 });
+        }
+        return Response.json(
+          responses["gateway:openai"] ?? {
+            choices: [{ message: { content: validDescription() } }],
+          },
+        );
+      },
+    }),
   } as unknown as Ai;
 }
 
