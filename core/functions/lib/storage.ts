@@ -20,6 +20,7 @@ interface UploadUrl {
 }
 
 const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024; // 20MB
+const MAX_MODEL_INPUT_BYTES = 5 * 1024 * 1024; // 5MB
 const PRESIGNED_URL_EXPIRY_SECONDS = 600; // 10 minutes
 export const SELFIE_UPLOAD_TYPE = "selfie";
 export const STYLE_REFERENCE_UPLOAD_TYPE = "style-reference";
@@ -154,14 +155,14 @@ export async function listStyleReferenceObjects(
 
 /**
  * Download an R2 object and convert to base64.
- * Returns null if the object is too large (>1MB) or cannot be read.
+ * Returns null if the object is too large for model input or cannot be read.
  */
 export async function downloadAsBase64(
   r2Object: R2Object,
   storage: R2Bucket,
 ): Promise<{ base64: string; mediaType: string } | null> {
-  // Memory safeguard: skip images >1MB
-  if (r2Object.size > 1_000_000) {
+  // Memory safeguard: skip images too large for direct model input.
+  if (r2Object.size > MAX_MODEL_INPUT_BYTES) {
     return null;
   }
 
