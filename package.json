@@ -6,13 +6,20 @@
   "scripts": {
     "dev": "concurrently \"pnpm:dev:astro\" \"pnpm:dev:api\" --names 'astro,api' --prefix-colors cyan,yellow",
     "dev:astro": "astro dev",
+    "predev:api": "pnpm product:compile",
     "dev:api": "wrangler dev core/functions/index.ts --compatibility-date=2025-04-01 --port=8787",
+    "prebuild": "pnpm product:compile",
     "build": "astro build",
     "preview": "astro preview",
+    "pretypecheck": "pnpm product:compile",
     "typecheck": "tsc --noEmit && tsc --noEmit -p core/functions/tsconfig.json",
-    "deploy:ig": "NICHE=ig-content pnpm build && wrangler deploy",
-    "deploy:headshots": "NICHE=headshots pnpm build && wrangler deploy",
-    "deploy:dating": "NICHE=dating pnpm build && wrangler deploy"
+    "test": "pnpm product:compile && vitest run",
+    "product:validate": "node core/tools/product-workspace.mjs validate",
+    "product:compile": "node core/tools/product-workspace.mjs compile",
+    "product:check": "node core/tools/product-workspace.mjs check",
+    "deploy:ig": "PRODUCT_ID=ig-content pnpm build && wrangler deploy",
+    "deploy:headshots": "PRODUCT_ID=headshots pnpm build && wrangler deploy",
+    "deploy:dating": "PRODUCT_ID=dating pnpm build && wrangler deploy"
   },
   "dependencies": {
     "@arrow-js/core": "^1.0.0",

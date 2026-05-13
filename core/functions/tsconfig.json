@@ -11,6 +11,6 @@
     "types": ["@cloudflare/workers-types"],
     "baseUrl": "."
   },
-  "include": ["**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": ["index.ts", "routes/**/*.ts", "middleware/**/*.ts", "lib/**/*.ts", "generated/**/*.ts"],
+  "exclude": ["node_modules", "**/__tests__/**", "scripts/**"]
 }

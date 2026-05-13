@@ -36,10 +36,10 @@ Workers AI model names use `@cf/<provider>/<model>` format in the catalog and AP
 Proxied models (gpt-image-2, imagen-4, etc.) require an AI Gateway. The gateway acts as a proxy between the Worker and the external provider.
 
 1. Create the gateway in Cloudflare Dashboard: `AI → AI Gateway → Create Gateway`
-2. Name it `opinionated-imagen-{niche}` (e.g., `opinionated-imagen-ig`)
+2. Name it for the deployable product (e.g., `opinionated-imagen-ig`)
 3. Configure the provider API key in the gateway settings (e.g., OpenAI API key for gpt-image-2)
 4. The gateway has `authentication: true` by default — requests to the gateway endpoint require a `Bearer` token (Cloudflare API token with AI Gateway Run permission). Set `authentication: false` if API-key-based auth is preferred.
-5. Pass `{ gateway: { id: 'opinionated-imagen-ig' } }` in `env.AI.run()` calls for proxied models
+5. Store the gateway id in `products/{product}/product.json`; runtime code reads it from the compiled Product Workspace artifact
 
 **Note:** "No BYOK required" applies only to hosted Workers AI models. Proxied models (gpt-image-2, etc.) require the user to provide their own API key in the gateway settings.
 
@@ -71,7 +71,7 @@ const response = await env.AI.run(
     quality: 'medium',
     size: '1024x1536',
   },
-  { gateway: { id: 'opinionated-imagen-ig' } }  // Gateway required — needs OpenAI API key configured
+  { gateway: { id: productWorkspace.manifest.gatewayId } }  // Gateway required — needs OpenAI API key configured
 );
 ```
 

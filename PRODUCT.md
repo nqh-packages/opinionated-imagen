@@ -1,16 +1,16 @@
 # Opinionated Imagen
 
-A framework for creating niche market products in AI image generation. One engine, many products.
+A framework for creating market products in AI image generation. One engine, many products.
 
-Each niche is a standalone market product with its own Scene catalog, pricing, user-facing language, and brand. The engine is shared. The output is photorealistic editorial content — like a magazine team produced it, not like an AI generated it.
+Each product is a standalone market product with its own Scene catalog, pricing, user-facing language, and brand. The engine is shared. The output is photorealistic editorial content — like a magazine team produced it, not like an AI generated it.
 
-Read [AGENTS.md](AGENTS.md) for how to build a niche. Read [CONTEXT.md](CONTEXT.md) for the canonical terms.
+Read [AGENTS.md](AGENTS.md) for how to build a product workspace. Read [CONTEXT.md](CONTEXT.md) for the canonical terms.
 
 ## What It Makes
 
-Each niche is a web product where creators upload their photos, teach the system their look and taste, and get back curated content packs — no prompt engineering, one-turn confirmation, photorealistic output.
+Each product is a web product where creators upload their photos, teach the system their look and taste, and get back curated content packs — no prompt engineering, one-turn confirmation, photorealistic output.
 
-Right now there's one niche: **IG Content** for individual creators like Lily. See `niches/ig-content/PRODUCT.md`.
+Right now there's one product: **IG Content** for individual creators like Lily. See `products/ig-content/PRODUCT.md`.
 
 ## Not in Scope
 
@@ -26,18 +26,20 @@ Right now there's one niche: **IG Content** for individual creators like Lily. S
 
 ```
 core/               ← shared engine, backend, auth, payments
-niches/{niche}/
+products/{product}/
+  product.json      ← machine-readable product manifest
   scenes/           ← JSON Scene definitions
   PRODUCT.md        ← market-facing product doc
-  CONTEXT.md        ← niche-specific term aliases
+  CONTEXT.md        ← product-specific term aliases
+  context.md        ← agent-native product context
   brand/            ← design tokens, copy
 ```
 
-A niche is a configuration directory, not a fork. The engine lives in `core/` and drives every niche product.
+A product workspace is a configuration and content directory, not a fork. The engine lives in `core/` and drives every product.
 
-## Niche Stack
+## Product Stack
 
-Each niche deploys as a Cloudflare Worker. Same code, different config, different domain.
+Each product deploys as a Cloudflare Worker. Same code, different config, different domain.
 
 - Frontend: Astro + React 19 islands
 - Backend: Cloudflare Workers (Hono) + D1 + R2

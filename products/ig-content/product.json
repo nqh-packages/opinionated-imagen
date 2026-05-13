@@ -1,0 +1,18 @@
+{
+  "id": "ig-content",
+  "name": "IG Content",
+  "sourceLocale": "en",
+  "gatewayId": "opinionated-imagen-ig",
+  "deploy": {
+    "script": "deploy:ig"
+  },
+  "pricing": {
+    "singleDropUsd": 10,
+    "monthlyAccessUsd": 29,
+    "monthlyDrops": 4
+  },
+  "brand": {
+    "designedByBrandr": true,
+    "brandrUrl": "https://bybrandr.com"
+  }
+}

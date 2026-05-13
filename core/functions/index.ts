@@ -16,6 +16,8 @@ type Bindings = {
   R2_SESSION_TOKEN?: string;
   ACCOUNT_ID: string;
   MAIL_FROM?: string;
+  PRODUCT_ID?: string;
+  NICHE?: string;
 };
 
 type Variables = {

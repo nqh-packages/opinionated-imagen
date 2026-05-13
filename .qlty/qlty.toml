@@ -85,6 +85,21 @@ mode = "comment"
 
 # --- Custom ripgrep checks ---
 
+[plugins.definitions.ripgrep.drivers.product-workspace]
+script = "/opt/homebrew/bin/node core/tools/product-workspace.mjs check --sarif --output ${tmpfile}"
+success_codes = [0]
+output = "tmpfile"
+output_format = "sarif"
+batch = true
+cache_results = false
+file_types = ["ALL"]
+
+[plugins.definitions.ripgrep.drivers.product-workspace.target]
+type = "literal"
+path = "."
+
 [[plugin]]
 name = "ripgrep"
-mode = "comment"
+drivers = ["product-workspace"]
+mode = "block"
+triggers = ["manual", "agent", "pre-commit", "pre-push", "build"]

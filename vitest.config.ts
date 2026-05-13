@@ -6,7 +6,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    include: ['core/functions/**/*.test.ts', 'test-scripts/**/*.test.ts'],
+    include: ['core/functions/**/*.test.ts', 'core/tools/**/*.test.mjs', 'test-scripts/**/*.test.ts'],
     exclude: ['node_modules', 'dist', '.wrangler'],
   },
   resolve: {

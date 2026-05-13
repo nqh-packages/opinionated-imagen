@@ -1,7 +1,10 @@
 name = "opinionated-imagen"
-main = "functions/index.ts"
+main = "core/functions/index.ts"
 compatibility_date = "2025-04-01"
 compatibility_flags = ["nodejs_compat"]
+
+[vars]
+PRODUCT_ID = "ig-content"
 
 # D1 database binding
 [[d1_databases]]

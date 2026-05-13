@@ -1,6 +1,6 @@
 # Opinionated Imagen — Canonical Domain Language
 
-Shared internal language across all niche products. Every code path, API contract, and internal doc uses these terms. They never change between niches.
+Shared internal language across all Opinionated Imagen products. Every code path, API contract, and internal doc uses these terms. They never change between products.
 
 ## Language
 
@@ -27,7 +27,7 @@ The persistent, extracted aesthetic fingerprint derived from Style References �
 _Avoid_: Filter, preset style, look, grade.
 
 ### Preset (Scene)
-A JSON-defined template that bundles a scene description, default composition, and a variation plan. Curated by the product owner and shipped with the niche. Selected during the Create step (after onboarding).
+A JSON-defined template that bundles a scene description, default composition, and a variation plan. Curated by the product owner and shipped with the product. Selected during the Create step (after onboarding).
 _Avoid_: Template, theme, pack template.
 
 ### Style Preset (Vibe)
@@ -71,7 +71,7 @@ A purchasable or subscription-granted unit of generation that produces one Conta
 _Avoid_: Credit, session, job, generation.
 
 ### Gateway
-A Cloudflare AI Gateway instance scoped to one niche. Named `opinionated-imagen-{niche}`.
+A Cloudflare AI Gateway instance scoped to one product. The concrete gateway id lives in `products/{product}/product.json`.
 
 ## Relationships
 
@@ -83,7 +83,7 @@ A Cloudflare AI Gateway instance scoped to one niche. Named `opinionated-imagen-
 - An **Intention Confirmation** is the rendered display of an **Intention**
 - A **Pack**, when executed, produces one **Contact Sheet**
 - A **Contact Sheet** contains 4–12 **Variations** of the same scene
-- A **Niche** contains a curated set of **Presets**, pricing rules, and user-facing term aliases
+- A **Product Workspace** contains a curated set of **Presets**, pricing rules, brand assets, deploy identity, and user-facing term aliases
 
 ## Resolved Ambiguities
 
