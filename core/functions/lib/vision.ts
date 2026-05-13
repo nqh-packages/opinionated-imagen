@@ -5,18 +5,23 @@
  * No console.log — use structured diagnostics.
  */
 
-import type { Ai } from '@cloudflare/workers-types';
-import { IDENTITY_EXTRACTION_PROMPT, buildReferenceSheetPrompt } from './prompts';
-import { getProductWorkspace } from '../generated/products';
+import {
+  IDENTITY_EXTRACTION_PROMPT,
+  STYLE_EXTRACTION_PROMPT,
+  buildReferenceSheetPrompt,
+} from "./prompts";
+import { getProductWorkspace } from "../generated/products";
 
 // ─── Types ─────────────────────────────────────────────────────────
 
 export interface IdentityExtractionResult {
   description: string;
-  modelUsed: 'gemma-4-26b-a4b-it' | 'kimi-k2.5';
+  modelUsed: "gemma-4-26b-a4b-it" | "kimi-k2.5";
   extractionMs: number;
   error?: string;
 }
+
+export type StyleExtractionResult = IdentityExtractionResult;
 
 export interface ReferenceSheetResult {
   r2Key: string;
@@ -49,20 +54,20 @@ export async function extractIdentity(
   try {
     const content = [
       ...base64Photos.map((p) => ({
-        type: 'image_url' as const,
+        type: "image_url" as const,
         image_url: {
           url: `data:${p.mediaType};base64,${p.base64}`,
         },
       })),
-      { type: 'text' as const, text: IDENTITY_EXTRACTION_PROMPT },
+      { type: "text" as const, text: IDENTITY_EXTRACTION_PROMPT },
     ];
 
-    const response = await env.AI.run('@cf/google/gemma-4-26b-a4b-it', {
-      messages: [{ role: 'user', content } as any],
+    const response = await env.AI.run("@cf/google/gemma-4-26b-a4b-it", {
+      messages: [{ role: "user", content } as never],
     });
 
     const elapsed = Date.now() - start;
-    const text = (response as any)?.response || '';
+    const text = readTextResponse(response);
 
     if (!text || text.length < 30) {
       // Try kimi-k2.5 fallback
@@ -74,18 +79,77 @@ export async function extractIdentity(
         };
       }
       return {
-        description: '',
-        modelUsed: 'gemma-4-26b-a4b-it',
+        description: "",
+        modelUsed: "gemma-4-26b-a4b-it",
         extractionMs: elapsed,
-        error: 'Empty description from gemma-4 and kimi-k2.5 fallback',
+        error: "Empty description from gemma-4 and kimi-k2.5 fallback",
       };
     }
 
-    return { description: text, modelUsed: 'gemma-4-26b-a4b-it', extractionMs: elapsed };
+    return {
+      description: text,
+      modelUsed: "gemma-4-26b-a4b-it",
+      extractionMs: elapsed,
+    };
   } catch (err) {
     const elapsed = Date.now() - start;
-    const message = err instanceof Error ? err.message : 'Unknown error';
-    return { description: '', modelUsed: 'gemma-4-26b-a4b-it', extractionMs: elapsed, error: message };
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return {
+      description: "",
+      modelUsed: "gemma-4-26b-a4b-it",
+      extractionMs: elapsed,
+      error: message,
+    };
+  }
+}
+
+export async function extractStyle(
+  env: { AI: Ai },
+  base64Photos: { base64: string; mediaType: string }[],
+): Promise<StyleExtractionResult> {
+  const start = Date.now();
+
+  try {
+    const content = [
+      ...base64Photos.map((p) => ({
+        type: "image_url" as const,
+        image_url: {
+          url: `data:${p.mediaType};base64,${p.base64}`,
+        },
+      })),
+      { type: "text" as const, text: STYLE_EXTRACTION_PROMPT },
+    ];
+
+    const response = await env.AI.run("@cf/google/gemma-4-26b-a4b-it", {
+      messages: [{ role: "user", content } as never],
+    });
+
+    const elapsed = Date.now() - start;
+    const text = readTextResponse(response);
+
+    if (!text || text.length < 30) {
+      return {
+        description: "",
+        modelUsed: "gemma-4-26b-a4b-it",
+        extractionMs: elapsed,
+        error: "Empty style description from gemma-4",
+      };
+    }
+
+    return {
+      description: text,
+      modelUsed: "gemma-4-26b-a4b-it",
+      extractionMs: elapsed,
+    };
+  } catch (err) {
+    const elapsed = Date.now() - start;
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return {
+      description: "",
+      modelUsed: "gemma-4-26b-a4b-it",
+      extractionMs: elapsed,
+      error: message,
+    };
   }
 }
 
@@ -99,26 +163,26 @@ async function tryFallback(
   try {
     const content = [
       ...base64Photos.map((p) => ({
-        type: 'image_url' as const,
+        type: "image_url" as const,
         image_url: {
           url: `data:${p.mediaType};base64,${p.base64}`,
         },
       })),
-      { type: 'text' as const, text: IDENTITY_EXTRACTION_PROMPT },
+      { type: "text" as const, text: IDENTITY_EXTRACTION_PROMPT },
     ];
 
     const start = Date.now();
-    const response = await env.AI.run('@cf/moonshotai/kimi-k2.5', {
-      messages: [{ role: 'user', content } as any],
+    const response = await env.AI.run("@cf/moonshotai/kimi-k2.5", {
+      messages: [{ role: "user", content } as never],
     });
     const elapsed = Date.now() - start;
-    const text = (response as any)?.response || '';
+    const text = readTextResponse(response);
 
     if (!text || text.length < 30) {
       return null;
     }
 
-    return { description: text, modelUsed: 'kimi-k2.5', extractionMs: elapsed };
+    return { description: text, modelUsed: "kimi-k2.5", extractionMs: elapsed };
   } catch {
     return null;
   }
@@ -140,34 +204,63 @@ export async function generateReferenceSheet(
   const prompt = buildReferenceSheetPrompt(identityDescription);
 
   try {
-    const gatewayName = getProductWorkspace(env.PRODUCT_ID ?? env.NICHE ?? 'ig-content').manifest.gatewayId;
+    const gatewayName = getProductWorkspace(
+      env.PRODUCT_ID ?? env.NICHE ?? "ig-content",
+    ).manifest.gatewayId;
     const response = await env.AI.run(
-      'openai/gpt-image-2',
+      "openai/gpt-image-2",
       {
         prompt,
-        quality: 'medium',
-        size: '1536x1024',
-        output_format: 'png',
+        quality: "medium",
+        size: "1536x1024",
+        output_format: "png",
       },
       { gateway: { id: gatewayName } },
     );
 
-    const responseData = response as any;
     // gpt-image-2 returns base64 in the response
-    const imageData = responseData?.image?.base64 || responseData?.data?.[0]?.base64;
+    const imageData = readImageBase64(response);
     if (!imageData) {
-      return { r2Key: '', success: false, error: 'No image data in gpt-image-2 response' };
+      return {
+        r2Key: "",
+        success: false,
+        error: "No image data in gpt-image-2 response",
+      };
     }
 
     const r2Key = `profiles/${sessionToken}/identity-reference.png`;
     const binaryData = Uint8Array.from(atob(imageData), (c) => c.charCodeAt(0));
-    await env.STORAGE.put(r2Key, binaryData, { httpMetadata: { contentType: 'image/png' } });
+    await env.STORAGE.put(r2Key, binaryData, {
+      httpMetadata: { contentType: "image/png" },
+    });
 
     return { r2Key, success: true };
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Unknown error';
-    return { r2Key: '', success: false, error: message };
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return { r2Key: "", success: false, error: message };
   }
+}
+
+function readTextResponse(response: unknown): string {
+  if (typeof response !== "object" || !response) return "";
+  const data = response as { response?: unknown; text?: unknown };
+  if (typeof data.response === "string") return data.response;
+  if (typeof data.text === "string") return data.text;
+  return "";
+}
+
+export function readImageBase64(response: unknown): string {
+  if (typeof response !== "object" || !response) return "";
+  const data = response as {
+    image?: { base64?: unknown };
+    data?: { base64?: unknown; b64_json?: unknown }[];
+  };
+  const direct = data.image?.base64;
+  if (typeof direct === "string") return direct;
+  const first = data.data?.[0];
+  if (typeof first?.base64 === "string") return first.base64;
+  if (typeof first?.b64_json === "string") return first.b64_json;
+  return "";
 }
 
 // ─── Orchestration ─────────────────────────────────────────────────
@@ -179,7 +272,7 @@ export async function buildIdentityProfile(
   env: ExtractionEnv,
   sessionToken: string,
 ): Promise<{ success: boolean }> {
-  const { listSelfieObjects, downloadAsBase64 } = await import('./storage');
+  const { listSelfieObjects, downloadAsBase64 } = await import("./storage");
 
   // 1. List selfie objects
   const selfieObjects = await listSelfieObjects(sessionToken, env.STORAGE);
@@ -208,18 +301,71 @@ export async function buildIdentityProfile(
     `INSERT INTO identity_profiles (session_token, description, model_used, extraction_ms)
      VALUES (?1, ?2, ?3, ?4)`,
   )
-    .bind(sessionToken, extraction.description, extraction.modelUsed, extraction.extractionMs)
+    .bind(
+      sessionToken,
+      extraction.description,
+      extraction.modelUsed,
+      extraction.extractionMs,
+    )
     .run();
 
   // 5. Generate reference sheet (non-critical — skip on failure)
-  const sheet = await generateReferenceSheet(env, extraction.description, sessionToken);
+  const sheet = await generateReferenceSheet(
+    env,
+    extraction.description,
+    sessionToken,
+  );
   if (sheet.success) {
     await env.DB.prepare(
-      'UPDATE identity_profiles SET reference_r2_key = ?1 WHERE session_token = ?2',
+      "UPDATE identity_profiles SET reference_r2_key = ?1 WHERE session_token = ?2",
     )
       .bind(sheet.r2Key, sessionToken)
       .run();
   }
+
+  return { success: true };
+}
+
+export async function buildStyleProfile(
+  env: ExtractionEnv,
+  sessionToken: string,
+): Promise<{ success: boolean }> {
+  const { listStyleReferenceObjects, downloadAsBase64 } = await import(
+    "./storage"
+  );
+
+  const styleObjects = await listStyleReferenceObjects(
+    sessionToken,
+    env.STORAGE,
+  );
+  if (styleObjects.length < 3) {
+    return { success: false };
+  }
+
+  const base64Photos: { base64: string; mediaType: string }[] = [];
+  for (const obj of styleObjects) {
+    const result = await downloadAsBase64(obj, env.STORAGE);
+    if (result) base64Photos.push(result);
+  }
+  if (base64Photos.length < 3) {
+    return { success: false };
+  }
+
+  const extraction = await extractStyle(env, base64Photos);
+  if (!extraction.description) {
+    return { success: false };
+  }
+
+  await env.DB.prepare(
+    "INSERT OR REPLACE INTO style_profiles (session_token, description, model_used, extraction_ms) VALUES (?1, ?2, ?3, ?4)",
+  )
+    .bind(
+      sessionToken,
+      extraction.description,
+      extraction.modelUsed,
+      extraction.extractionMs,
+    )
+    .run();
 
   return { success: true };
 }

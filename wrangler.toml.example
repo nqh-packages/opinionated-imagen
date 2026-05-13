@@ -20,6 +20,12 @@ bucket_name = "opinionated-imagen-storage"
 # Workers AI binding
 [ai]
 binding = "AI"
+remote = true
+
+# Static assets (Astro build output)
+[assets]
+directory = "dist"
+binding = "ASSETS"
 
 # SendEmail binding for magic links
 [[send_email]]
