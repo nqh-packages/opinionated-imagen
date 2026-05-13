@@ -28,10 +28,12 @@ describe("POST /api/packs", () => {
         },
       } as unknown as R2Bucket,
       AI: {
-        run: async (_model: string, input: Record<string, unknown>) => {
-          aiInputs.push(input);
-          return { data: [{ b64_json: PNG_BASE64 }] };
-        },
+        gateway: () => ({
+          run: async (input: Record<string, unknown>) => {
+            aiInputs.push(input);
+            return Response.json({ data: [{ b64_json: PNG_BASE64 }] });
+          },
+        }),
       } as unknown as Ai,
       PRODUCT_ID: "ig-content",
     };
@@ -57,7 +59,10 @@ describe("POST /api/packs", () => {
     const body = (await res.json()) as { packId: string };
     expect(body.packId).toBeTruthy();
     expect(storageWrites[0]).toContain(`/contact-sheet.png`);
-    expect(aiInputs[0]).not.toHaveProperty("model");
+    expect(aiInputs[0]).toMatchObject({
+      provider: "openai",
+      endpoint: "images/generations",
+    });
 
     const statusRes = await app.request(
       `/api/packs/${body.packId}`,
@@ -104,7 +109,9 @@ function createPackEnv(options: { sessionStatus?: string } = {}) {
       put: async (key: string) => ({ key, size: 1, etag: "mock" }),
     } as unknown as R2Bucket,
     AI: {
-      run: async () => ({ data: [{ b64_json: PNG_BASE64 }] }),
+      gateway: () => ({
+        run: async () => Response.json({ data: [{ b64_json: PNG_BASE64 }] }),
+      }),
     } as unknown as Ai,
     PRODUCT_ID: "ig-content",
   };

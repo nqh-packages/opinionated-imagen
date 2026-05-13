@@ -27,6 +27,7 @@ export interface ContactSheetResult {
 }
 
 const PROVIDER_ROUTE = "cloudflare-ai-gateway:gpt-image-2";
+const IMAGE_GENERATION_TIMEOUT_MS = 180_000;
 
 export async function generateContactSheet(
   env: ContactSheetEnv,
@@ -38,18 +39,33 @@ export async function generateContactSheet(
   const prompt = buildContactSheetPrompt(request.intention);
 
   try {
-    const response = await env.AI.run(
-      "openai/gpt-image-2",
+    const response = await env.AI.gateway(gatewayName).run(
       {
-        prompt,
-        quality: "medium",
-        size: "1536x1024",
-        output_format: "png",
+        provider: "openai",
+        endpoint: "images/generations",
+        headers: { "Content-Type": "application/json" },
+        query: {
+          model: "gpt-image-2",
+          prompt,
+          quality: "medium",
+          size: "1536x1024",
+          output_format: "png",
+        },
       },
-      { gateway: { id: gatewayName } },
+      {
+        gateway: {
+          id: gatewayName,
+          requestTimeoutMs: IMAGE_GENERATION_TIMEOUT_MS,
+          collectLog: true,
+        },
+      },
     );
 
-    const imageData = readImageBase64(response);
+    if (!response.ok) {
+      throw new Error(`Gateway image generation failed: ${response.status}`);
+    }
+
+    const imageData = readImageBase64(await response.json());
     if (!imageData) {
       return { success: false, error: "No image data in gpt-image-2 response" };
     }
