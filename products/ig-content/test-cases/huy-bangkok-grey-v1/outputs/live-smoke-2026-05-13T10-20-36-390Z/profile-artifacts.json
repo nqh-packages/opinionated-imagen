@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "packId": "c496720c-d3b7-4360-8a7a-e2dcfb8b4051",
+  "sessionToken": "[redacted-live-session-token]",
+  "identityProfile": {
+    "modelUsed": "openai:gpt-4.1-mini",
+    "extractionMs": 3792,
+    "description": "The individual appears to be a male aged approximately mid-20s to early 30s, presenting East Asian ethnicity. His skin tone is light with a neutral to warm undertone. The face shape is oval, with a defined jawline visible in the second close-up image. Eye color is dark brown, with almond-shaped eyes evident in the clearer frontal view. The nose bridge height is medium, with a slightly rounded nose tip. Lips are medium fullness with a defined cupid's bow. Hair color is natural black, styled short with a textured, slightly spiked look in the second image; hair texture appears straight and fine. Facial hair is minimal, showing light stubble primarily on the chin and upper lip area, consistent across photos. Distinctive features include a small mole or beauty mark near the left side of the nose visible in the close-up and no visible tattoos or piercings. Body type is lean, as inferred from the visible arm and shoulder in the first image. Consistency notes: hair color and style remain consistent; facial hair is light and sparse but present; no glasses or accessories worn by this individual in any photo."
+  },
+  "styleProfile": {
+    "modelUsed": "openai:gpt-4.1-mini",
+    "extractionMs": 4077,
+    "description": "These images share a natural, daylight-driven lighting style with soft, ambient sunlight creating gentle shadows and low contrast, emphasizing a relaxed, authentic mood. The color palette is warm and slightly muted with natural skin tones and balanced white balance, avoiding oversaturation while maintaining clear color separation - greens and blues are prominent but not overpowering. The camera approach feels intimate and casual, using a moderate focal length that captures medium close-ups with shallow depth of field to softly blur backgrounds, enhancing subject focus without harsh bokeh. Compositionally, the framing is informal and candid, with off-center subject placement and generous negative space that integrates environmental context, often from a slightly low or eye-level perspective, layering foreground and background elements to add depth. The story feels personal and spontaneous, capturing moments of genuine interaction or quiet reflection, leaning toward candid rather than posed, with a commercial editorial polish that still feels approachable. Texture is clean and sharp with minimal noise or grain, suggesting mirrorless or high-quality digital capture, preserving natural skin texture and fabric detail without artificial smoothing. Transfer rules: prioritize natural daylight softness, candid intimacy, balanced natural colors, and informal framing with environmental layering; avoid copying exact poses or overly staged setups."
+  }
+}
