@@ -23,10 +23,10 @@ Cloudflare Worker backend (Hono v4 + D1 + R2 + Workers AI).
 pnpm dev:api
 
 # Start with remote R2 access (needed for presigned URLs)
-wrangler dev functions/index.ts --remote --port=8787
+wrangler dev core/functions/index.ts --remote --port=8787
 
 # Typecheck
-npx tsc --noEmit -p functions/tsconfig.json
+pnpm typecheck
 
 # Deploy dry-run
 npx wrangler deploy --dry-run
@@ -63,7 +63,7 @@ Each route group is a separate Hono app in `functions/routes/`.
 | Method | Path | File | Description |
 |--------|------|------|-------------|
 | GET | `/api/health` | `index.ts` inline | Health check |
-| GET | `/api/presets` | `index.ts` inline | List available Scenes |
+| GET | `/api/scenes` | `routes/scenes.ts` | List available Scenes for active product |
 | POST | `/api/upload/presigned` | `routes/upload.ts` | Batch presigned R2 upload URLs |
 | GET | `/api/profile/status` | `routes/profile.ts` | Poll session/profile build status |
 | POST | `/api/profile/build` | `routes/profile.ts` | Trigger async profile building |
@@ -148,8 +148,20 @@ type Bindings = {
   R2_ACCESS_KEY_ID: string;
   R2_SECRET_ACCESS_KEY: string;
   ACCOUNT_ID: string;
+  PRODUCT_ID?: string;                     // active Product Workspace id
 };
 ```
+
+## Product Workspace Runtime
+
+Product source lives in `products/{product}/`. The Worker imports the compiled artifact at `core/functions/generated/products.ts`; do not edit that generated file by hand.
+
+```bash
+pnpm product:validate
+pnpm product:compile
+```
+
+`PRODUCT_ID` selects the active product. `NICHE` is accepted only as a temporary compatibility alias.
 
 ## Domain Language (Backend-Specific)
 
@@ -171,7 +183,7 @@ The identity extraction pipeline lives in `lib/vision.ts` and `lib/prompts.ts`. 
 2. `downloadAsBase64(r2Object, STORAGE)` — downloads and converts to base64 (skips >1MB images as memory safeguard)
 3. `extractIdentity(env, base64Photos)` — calls `@cf/google/gemma-4-26b-a4b-it` with vision (OpenAI-compatible `image_url` format, not `source` format)
 4. Writes text description to D1 `identity_profiles` table
-5. `generateReferenceSheet(env, description, sessionToken)` — calls `openai/gpt-image-2` via AI Gateway (requires `opinionated-imagen-ig` gateway with OpenAI API key configured)
+5. `generateReferenceSheet(env, description, sessionToken)` — calls `openai/gpt-image-2` via the active product Gateway from `product.json`
 6. Reference sheet is non-critical — pipeline degrades gracefully to text-only
 
 ### Key Files

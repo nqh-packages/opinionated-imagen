@@ -24,7 +24,7 @@ The current Create page (`src/pages/create.astro`) shows a basic two-mode UI: Pr
 
 - R1. D1 `scenes` table with JSON metadata
 - R2. `GET /api/scenes` returns scenes with name, description, compositionPlan, tags
-- R3. Scene data loaded from `niches/ig-content/scenes/*.json` at build/runtime
+- R3. Scene data loaded from `products/ig-content/scenes/*.json` through the Product Workspace compiler
 - R4. Create page renders responsive card grid (2–4 columns) with Scene name + 2 tags
 - R5. Clicking a Scene selects it and renders The Brief below/as overlay as a centered paragraph
 - R6. Brief shows: baseScene text, composition plan summary, expected shot count
@@ -37,7 +37,7 @@ The current Create page (`src/pages/create.astro`) shows a basic two-mode UI: Pr
 
 - **No inline editing.** The Brief is read-only. The inline editing flow is deferred to the One Turn implementation.
 - **No custom/freeform prompt mode.** The previous "Custom" toggle is removed. The catalog is the only entry point for this slice.
-- **No D1 seeding at runtime.** The D1 `scenes` table schema exists for completeness. The API serves scene data from a TypeScript module (bundled with the Worker) — the JSON files in `niches/ig-content/scenes/` are the design-level canonical source, and the TypeScript module mirrors them. D1-based reads and seeding from JSON are deferred until scenes become dynamic.
+- **No D1 seeding at runtime.** The D1 `scenes` table schema exists for completeness. The API serves scene data from the generated Product Workspace artifact — the JSON files in `products/ig-content/scenes/` are the canonical source. D1-based reads and seeding from JSON are deferred until scenes become dynamic.
 - **No image/thumbnail for Scene cards.** Cards show name + tags only. Scene imagery is a future visual enhancement.
 - **No test infrastructure.** The project has no test runner configured. Unit/integration tests for this slice are deferred. Manual verification with curl and browser is the validation path.
 
@@ -65,7 +65,7 @@ The current Create page (`src/pages/create.astro`) shows a basic two-mode UI: Pr
 
 ## Key Technical Decisions
 
-- **TypeScript module as Worker data source, JSON files as canonical design source**: Scene definitions live in `functions/lib/scenes-data.ts` as a typed array. This is imported by the Worker route, ensuring wrangler bundles it. The JSON files in `niches/ig-content/scenes/` remain as the design-level canonical documents — they define the scene catalog but are not read at runtime by the Worker. This solves the Cloudflare Worker bundling constraint (dynamic `fs` reads unbundled files).
+- **Product Workspace compiler as Worker data source, JSON files as canonical source**: Scene definitions live in `products/ig-content/scenes/*.json`. `core/tools/product-workspace.mjs` validates and compiles them into `core/functions/generated/products.ts`, which the Worker imports. This solves the Cloudflare Worker bundling constraint without hand-maintained mirrors.
 - **D1 `scenes` table exists for schema completeness**: Created via migration. Not read by the API yet. Seeding D1 from JSON/source data is deferred to when scenes become dynamic.
 - **Scene data schema extends the existing preset shape**: Adds `tags` array, `shotCount` (derived from compositionPlan ratios sum), and keeps `baseScene`, `compositionPlan` from the existing schema.
 - **`/api/presets` removed, `/api/scenes` replaces it**: The old hardcoded endpoint returns one dummy preset. No backward compatibility needed — no production data depends on it.
@@ -76,7 +76,7 @@ The current Create page (`src/pages/create.astro`) shows a basic two-mode UI: Pr
 
 ### Resolved During Planning
 
-- How to handle Worker filesystem access for JSON files? → Use a TypeScript data module (`functions/lib/scenes-data.ts`) that imports the data directly. The JSON files remain as design documents only.
+- How to handle Worker filesystem access for JSON files? → Use the Product Workspace compiler to generate `core/functions/generated/products.ts` from `products/{product}/scenes/*.json`.
 - What happens to the custom/freeform prompt mode? → Removed for this slice. It was a placeholder.
 
 ### Deferred to Implementation
@@ -97,10 +97,10 @@ The current Create page (`src/pages/create.astro`) shows a basic two-mode UI: Pr
 **Dependencies:** None
 
 **Files:**
-- Create: `niches/ig-content/scenes/cafe-aesthetic.json` (updated schema with tags — design document)
-- Create: `niches/ig-content/scenes/coffee-shop-meeting.json` (second Scene — ensures the catalog isn't a single-item list)
-- Create: `niches/ig-content/scenes/golden-hour-portrait.json` (third Scene — demonstrates diversity)
-- Create: `functions/lib/scenes-data.ts` — typed Scene array imported by the Worker
+- Create: `products/ig-content/scenes/cafe-aesthetic.json` (updated schema with tags)
+- Create: `products/ig-content/scenes/coffee-shop-meeting.json` (second Scene — ensures the catalog isn't a single-item list)
+- Create: `products/ig-content/scenes/golden-hour-portrait.json` (third Scene — demonstrates diversity)
+- Generate: `core/functions/generated/products.ts` — typed Product Workspace artifact imported by the Worker
 - Create: `functions/migrations/0002_create_scenes.sql` — D1 scenes table
 - Create: `functions/routes/scenes.ts` — GET /api/scenes handler
 - Modify: `functions/index.ts` — mount scenes routes, remove old presets endpoint
@@ -132,7 +132,7 @@ The current Create page (`src/pages/create.astro`) shows a basic two-mode UI: Pr
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
   ```
-- `functions/lib/scenes-data.ts` exports a typed array with the same data as the JSON files. The route imports this module.
+- `core/functions/generated/products.ts` exports compiled Product Workspace data. The route imports this module.
 - `functions/routes/scenes.ts`: Hono sub-app with `GET /`. Returns the Scene array. Uses structured diagnostics on error. 200 with array on success.
 - Mount in `index.ts`: remove hardcoded `/api/presets`, add `app.route('/api/scenes', scenesApp)`.
 
@@ -238,7 +238,7 @@ CreateApp
 
 ## Documentation / Operational Notes
 
-- **Adding new Scenes**: Update `functions/lib/scenes-data.ts` with the new scene definition AND create a corresponding JSON file in `niches/ig-content/scenes/` for the design record.
+- **Adding new Scenes**: Add or edit the JSON file in `products/ig-content/scenes/`, then run `pnpm product:validate ig-content` and `pnpm product:compile ig-content`.
 - **D1 scenes table**: Created for schema completeness. No active reads yet. Can be seeded in a future migration when dynamic scenes are needed.
 - **`/api/scenes` replaces `/api/presets`**: The old endpoint is removed. Any code still referencing `/api/presets` will 404.
 

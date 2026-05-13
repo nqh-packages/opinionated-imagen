@@ -2,9 +2,9 @@
 
 ## Project
 
-Opinionated Imagen — a framework for creating niche market products in AI image generation. One engine, many products.
+Opinionated Imagen — a framework for creating market products in AI image generation. One engine, many products.
 
-Read [PRODUCT.md](PRODUCT.md) for the framework vision. Read [CONTEXT.md](CONTEXT.md) for the canonical domain language. Read [MODELS.md](MODELS.md) for AI model reference. Each niche has its own PRODUCT.md and CONTEXT.md under `niches/{niche}/`.
+Read [PRODUCT.md](PRODUCT.md) for the framework vision. Read [CONTEXT.md](CONTEXT.md) for the canonical domain language. Read [MODELS.md](MODELS.md) for AI model reference. Each deployable product has its own workspace under `products/{product}/`.
 
 ## Structure Law
 
@@ -12,31 +12,35 @@ The directory layout below is enforced. Every agent must maintain it.
 
 ```
 core/                       ← All shared source code.
-  src/                      ← Astro frontend (shared across niches)
+  src/                      ← Astro frontend (shared across products)
     components/ui/          ← shadcn/ui components
     islands/                ← React islands (OnboardApp, CreateApp, GalleryApp)
     layouts/                ← Astro layouts
     lib/                    ← Utilities (api.ts, utils.ts)
     pages/                  ← Astro pages
     styles/                 ← Tailwind CSS
-  functions/                ← Hono backend (shared across niches)
+  functions/                ← Hono backend (shared across products)
     index.ts                ← App entry, route mounting, bindings
     middleware/auth.ts      ← requireAuth
-    lib/                    ← diagnostics, id, storage, email, scenes-data
+    generated/              ← Derived product workspace bundle. Do not edit by hand.
+    lib/                    ← diagnostics, id, storage, email
     routes/                 ← auth, upload, profile, scenes
     migrations/             ← D1 SQL migrations
     scripts/                ← setup-lifecycle
     AGENTS.md               ← Backend-specific reference (for Workers-only work)
-niches/
-  {niche}/                  ← One directory per market product
+  tools/                    ← Repo-local build/validation tools
+products/
+  {product}/                ← One source-of-truth workspace per deployable product
+    product.json            ← Machine-readable Product Manifest.
     scenes/                 ← Scene/Preset JSON definitions
     PRODUCT.md              ← Market vision. Price table, core flow, positioning.
     CONTEXT.md              ← Maps user-facing terms to CONTEXT.md canon.
+    context.md              ← Agent-native dynamic context for this product.
     brand/                  ← Design tokens, copy assets.
 AGENTS.md                   ← This file. Root level only.
-CONTEXT.md                  ← Canonical domain terms. Do not add niche-specific terms here.
-MODELS.md                   ← Shared AI model decisions. Do not duplicate per niche.
-PRODUCT.md                  ← Framework vision. Do not add niche-specific content here.
+CONTEXT.md                  ← Canonical domain terms. Do not add product-specific terms here.
+MODELS.md                   ← Shared AI model decisions. Do not duplicate per product.
+PRODUCT.md                  ← Framework vision. Do not add product-specific content here.
 astro.config.mjs            ← Build config. srcDir must point to core/src/.
 package.json                ← Root build config. Scripts point to core/* paths.
 ```
@@ -45,13 +49,14 @@ package.json                ← Root build config. Scripts point to core/* paths
 
 | Rule | Why |
 |------|-----|
-| **No source code at root level.** All shared code lives in `core/`. | Root should only have configs, docs, and `niches/`. |
-| **No niche-specific terms in CONTEXT.md.** Root CONTEXT.md is canonical/shared only. Niche aliases go in `niches/{niche}/CONTEXT.md`. | SSOT for internal terms. User-facing language is per-niche. |
-| **Each niche must have PRODUCT.md + CONTEXT.md + brand/.** These are not optional. | Every market product needs its own vision, term mapping, and brand identity. |
-| **Niche CONTEXT.md must map every user-facing term to CONTEXT.md.** If a term is used in UI but absent from the niche's CONTEXT.md, it's a drift. | Prevents agents from inventing terms that don't map to canon. |
-| **API routes return CONTEXT.md terms, not user-facing terms.** Only the frontend translates. | One backend, N niches. API stays generic. |
+| **No source code at root level.** All shared code lives in `core/`. | Root should only have configs, docs, `core/`, and `products/`. |
+| **No product-specific terms in root CONTEXT.md.** Root CONTEXT.md is canonical/shared only. Product aliases go in `products/{product}/CONTEXT.md`. | SSOT for internal terms. User-facing language is per product. |
+| **Each product must have product.json + PRODUCT.md + CONTEXT.md + context.md + brand/.** These are not optional. | Every deployable product needs machine config, vision, term mapping, agent context, and brand identity. |
+| **Product CONTEXT.md must map every user-facing term to CONTEXT.md.** If a term is used in UI but absent from the product's CONTEXT.md, it's drift. | Prevents agents from inventing terms that don't map to canon. |
+| **API routes return CONTEXT.md terms, not user-facing terms.** Only the frontend translates. | One backend, N products. API stays generic. |
 | **New file types at root require a justification comment in this file.** Config files, deploy scripts, and root docs are the only valid root-level entries. | Prevents root from accumulating misc files. |
-| **New niches add a script to package.json: `deploy:{niche}`.** Runs `NICHE={niche} pnpm build && wrangler deploy`. | Every niche must be deployable independently. |
+| **New products add a script to package.json: `deploy:{product}`.** Runs `PRODUCT_ID={product} pnpm build && wrangler deploy`. | Every product must be deployable independently. |
+| **Products compile before runtime.** Run `pnpm product:validate` and `pnpm product:compile` after product workspace changes. | Worker bundles derived files from `core/functions/generated/`; `products/` remains canonical. |
 
 ## Stack
 
@@ -81,8 +86,8 @@ pnpm build
 ## Deploy
 
 ```bash
-# Each niche deploys independently
-pnpm deploy:ig        # NICHE=ig-content pnpm build && wrangler deploy
+# Each product deploys independently
+pnpm deploy:ig        # PRODUCT_ID=ig-content pnpm build && wrangler deploy
 pnpm deploy:headshots # (future)
 pnpm deploy:dating    # (future)
 
@@ -91,16 +96,16 @@ npx wrangler d1 migrations apply opinionated-imagen-db
 npx wrangler d1 migrations apply opinionated-imagen-db --remote
 ```
 
-The `NICHE` env var selects which niche config the Worker loads at runtime. Each niche deploys to its own domain.
+The `PRODUCT_ID` env var selects which Product Workspace the Worker loads at runtime. `NICHE` is accepted only as a temporary backward-compatible alias. Each product deploys to its own domain.
 
 ## API Routes
 
-Routes return CONTEXT.md canonical terms. Only the frontend maps to user-facing language per niche config.
+Routes return CONTEXT.md canonical terms. Only the frontend maps to user-facing language per product config.
 
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | `/api/health` | Health check |
-| GET | `/api/scenes` | List Presets for the active niche |
+| GET | `/api/scenes` | List Presets for the active product |
 | POST | `/api/upload/presigned` | Batch presigned upload URLs to R2 |
 | GET | `/api/profile/status?sessionToken=` | Poll session/profile build status |
 | POST | `/api/profile/build` | Trigger async profile building |
@@ -131,7 +136,7 @@ These are the single source of truth. Code, API, and internal docs use these exc
 | Contact Sheet | gallery, album, batch, pack output |
 | Variation | shot, frame, alternative |
 | Pack | credit, session, job, generation |
-| Gateway | AI Gateway instance, named `opinionated-imagen-{niche}` |
+| Gateway | AI Gateway instance, named in the Product Manifest (`products/{product}/product.json`) |
 
 Resolved ambiguities:
 - "prompt" = freeform Creator input. Internal generation parameters = **Intention**
@@ -162,7 +167,7 @@ The target: a friend took this photo with their phone.
 ## Resources
 
 - `core/functions/AGENTS.md` — Backend API, D1 schema, binding types, R2 setup
-- `niches/ig-content/` — Reference implementation for the first niche
+- `products/ig-content/` — Reference implementation for the first product
 
 ## Prompting References
 

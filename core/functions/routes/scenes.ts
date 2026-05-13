@@ -3,9 +3,15 @@
  */
 
 import { Hono } from 'hono';
-import { scenes } from '../lib/scenes-data';
+import { getProductWorkspace } from '../generated/products';
+import { serviceUnavailable } from '../lib/diagnostics';
 
-const scenesApp = new Hono();
+type Bindings = {
+  PRODUCT_ID?: string;
+  NICHE?: string;
+};
+
+const scenesApp = new Hono<{ Bindings: Bindings }>();
 
 /**
  * GET /api/scenes
@@ -15,7 +21,21 @@ const scenesApp = new Hono();
  * not from D1 (the D1 scenes table exists for schema completeness only).
  */
 scenesApp.get('/', async (c) => {
-  return c.json({ scenes }, 200);
+  const productId = c.env.PRODUCT_ID ?? c.env.NICHE ?? 'ig-content';
+
+  try {
+    const workspace = getProductWorkspace(productId);
+    return c.json({ scenes: workspace.scenes }, 200);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown product workspace error';
+    return c.json(
+      serviceUnavailable('PRODUCT_WORKSPACE_UNAVAILABLE', 'Active product workspace is not available.', {
+        productId,
+        error: message,
+      }),
+      503,
+    );
+  }
 });
 
 export default scenesApp;

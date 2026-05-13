@@ -7,6 +7,7 @@
 
 import type { Ai } from '@cloudflare/workers-types';
 import { IDENTITY_EXTRACTION_PROMPT, buildReferenceSheetPrompt } from './prompts';
+import { getProductWorkspace } from '../generated/products';
 
 // ─── Types ─────────────────────────────────────────────────────────
 
@@ -27,6 +28,8 @@ interface ExtractionEnv {
   AI: Ai;
   STORAGE: R2Bucket;
   DB: D1Database;
+  PRODUCT_ID?: string;
+  NICHE?: string;
 }
 
 // ─── Identity Extraction ───────────────────────────────────────────
@@ -130,14 +133,14 @@ async function tryFallback(
  * Non-critical: if this fails, the identity profile is still usable (text-only).
  */
 export async function generateReferenceSheet(
-  env: { AI: Ai; STORAGE: R2Bucket },
+  env: { AI: Ai; STORAGE: R2Bucket; PRODUCT_ID?: string; NICHE?: string },
   identityDescription: string,
   sessionToken: string,
 ): Promise<ReferenceSheetResult> {
   const prompt = buildReferenceSheetPrompt(identityDescription);
-  const gatewayName = 'opinionated-imagen-ig';
 
   try {
+    const gatewayName = getProductWorkspace(env.PRODUCT_ID ?? env.NICHE ?? 'ig-content').manifest.gatewayId;
     const response = await env.AI.run(
       'openai/gpt-image-2',
       {
