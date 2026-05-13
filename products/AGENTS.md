@@ -1,5 +1,7 @@
 # AGENTS.md
 
+<!-- markdownlint-disable MD013 -->
+
 ## Product Workspaces
 
 `products/{product}/` is the source of truth for each deployable Opinionated Imagen product. Agents and humans work in the same files. Do not mirror product data into `core/` by hand.
@@ -14,6 +16,12 @@ context.md
 brand/
   copy.json
   tokens.json
+pipelines/
+  *.json
+test-cases/
+  {test-case}/
+    manifest.json
+    inputs/
 scenes/
   *.json
 ```
@@ -25,6 +33,12 @@ scenes/
 - Keep user-facing language in the product workspace.
 - Keep canonical internal domain language in root `CONTEXT.md`.
 - Keep runtime code in `core/` product-agnostic.
+- Keep shared Generation Pipeline definitions in `core/pipelines/`.
+- Keep product-specific Generation Pipeline selection/configuration in `products/{product}/pipelines/`.
+- Product workspaces configure shared Pipeline Steps; they do not define custom product-private Pipeline Steps.
+- Keep reusable real-life fixtures under `products/{product}/test-cases/`.
+- User-uploaded test-case photos are identity raw material by default, not pose/composition truth.
+- Style-source test-case photos are taste, composition, color, lens, mood, and storytelling references by default.
 - Generated files under `core/functions/generated/` are derived artifacts.
 
 ## Commands

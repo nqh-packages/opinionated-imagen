@@ -1,0 +1,5 @@
+{
+  "schemaVersion": 1,
+  "status": "placeholder",
+  "description": "Evaluation results for generated variants will be saved here with scores, hard gates, provider routes, costs, and notes."
+}

@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "build-identity-profile",
+  "pipelineTypes": ["profile-building"],
+  "description": "Build or update an Identity Profile from a Creator's Selfie Set.",
+  "inputs": ["selfie-set"],
+  "outputs": ["identity-profile"],
+  "providerRouteRequired": true,
+  "approvalRequiredForRealIdentityData": true
+}

@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "id": "evaluate-provider-route",
+  "pipelineTypes": ["evaluation"],
+  "description": "Score Provider Route output against the shared evaluation rubric.",
+  "inputs": [
+    "provider-route-output",
+    "evaluation-fixture",
+    "evaluation-rubric"
+  ],
+  "outputs": ["evaluation-score"],
+  "providerRouteRequired": false,
+  "approvalRequiredForRealIdentityData": false
+}

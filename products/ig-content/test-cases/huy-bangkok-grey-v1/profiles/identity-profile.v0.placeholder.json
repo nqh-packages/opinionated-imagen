@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "status": "placeholder",
+  "description": "Identity Profile extraction output will be saved here as an append-only versioned artifact.",
+  "sourceInputs": [
+    "../inputs/user-uploaded/001-user-uploaded-bangkok.HEIC",
+    "../inputs/user-uploaded/002-user-uploaded-bangkok.HEIC",
+    "../inputs/user-uploaded/003-user-uploaded-bangkok.HEIC",
+    "../inputs/user-uploaded/004-user-uploaded-bangkok.HEIC",
+    "../inputs/user-uploaded/005-user-uploaded-bangkok.HEIC"
+  ]
+}

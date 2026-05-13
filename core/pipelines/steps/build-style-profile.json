@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "build-style-profile",
+  "pipelineTypes": ["profile-building"],
+  "description": "Build or update a Style Profile from Style References or a Style Preset.",
+  "inputs": ["style-references", "style-preset"],
+  "outputs": ["style-profile"],
+  "providerRouteRequired": true,
+  "approvalRequiredForRealIdentityData": false
+}

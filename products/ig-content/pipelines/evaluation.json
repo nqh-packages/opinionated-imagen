@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "ig-content.evaluation",
+  "pipelineType": "evaluation",
+  "description": "IG Content provider-route evaluation pipeline configuration.",
+  "enabled": true,
+  "fixturePolicy": "synthetic-or-approved-test-fixtures-only",
+  "candidateProviderRoutes": [
+    "cloudflare-ai-gateway:openai/gpt-image-2",
+    "krea:krea-1",
+    "krea:chatgpt-image",
+    "krea:nano-banana"
+  ],
+  "steps": [
+    {
+      "stepId": "assemble-intention"
+    },
+    {
+      "stepId": "generate-anchor"
+    },
+    {
+      "stepId": "generate-variations"
+    },
+    {
+      "stepId": "evaluate-provider-route"
+    }
+  ],
+  "promotionPolicy": {
+    "automaticPromotion": false,
+    "requiresApproval": true
+  }
+}

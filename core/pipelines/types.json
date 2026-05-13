@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "pipelineTypes": [
+    {
+      "id": "profile-building",
+      "description": "Produces or updates a Creator's Identity Profile or Style Profile.",
+      "artifactTypes": ["identity-profile", "style-profile"]
+    },
+    {
+      "id": "contact-sheet",
+      "description": "Produces a Contact Sheet from an Intention.",
+      "artifactTypes": ["contact-sheet"]
+    },
+    {
+      "id": "enhancement",
+      "description": "Improves or exports an existing generated artifact.",
+      "artifactTypes": ["enhanced-variation", "export"]
+    },
+    {
+      "id": "evaluation",
+      "description": "Compares or scores Provider Routes, Pipeline Steps, or generated artifacts.",
+      "artifactTypes": ["evaluation-report"]
+    }
+  ]
+}

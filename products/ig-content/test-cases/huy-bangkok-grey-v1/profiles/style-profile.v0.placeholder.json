@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "status": "placeholder",
+  "description": "Style Profile extraction output will be saved here as an append-only versioned artifact.",
+  "sourceInputs": [
+    "../inputs/style-source/001-style-reference.jpeg",
+    "../inputs/style-source/002-style-reference.jpeg",
+    "../inputs/style-source/003-style-reference.jpeg",
+    "../inputs/style-source/004-style-reference.jpeg"
+  ]
+}

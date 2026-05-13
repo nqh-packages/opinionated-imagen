@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "enhance-artifact",
+  "pipelineTypes": ["enhancement"],
+  "description": "Improve or export an existing generated artifact.",
+  "inputs": ["artifact"],
+  "outputs": ["enhanced-artifact"],
+  "providerRouteRequired": true,
+  "approvalRequiredForRealIdentityData": false
+}
