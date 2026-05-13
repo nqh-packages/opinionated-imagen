@@ -129,7 +129,7 @@ async function extractWithKimi(
   prompt: string,
 ): Promise<string> {
   const content = [
-    ...base64Photos.slice(0, 3).map((p) => ({
+    ...base64Photos.slice(0, 1).map((p) => ({
       type: "image_url" as const,
       image_url: {
         url: `data:${p.mediaType};base64,${p.base64}`,
