@@ -16,7 +16,10 @@ import { getProductWorkspace } from "../generated/products";
 
 export interface IdentityExtractionResult {
   description: string;
-  modelUsed: "gemma-4-26b-a4b-it" | "kimi-k2.5";
+  modelUsed:
+    | "llama-3.2-11b-vision-instruct"
+    | "gemma-4-26b-a4b-it"
+    | "kimi-k2.5";
   extractionMs: number;
   error?: string;
 }
@@ -40,10 +43,8 @@ interface ExtractionEnv {
 // ─── Identity Extraction ───────────────────────────────────────────
 
 /**
- * Run gemma-4 vision on base64-encoded selfie photos to produce
+ * Run Llama Vision on base64-encoded selfie photos to produce
  * a structured text description of the person's appearance.
- *
- * Falls back to kimi-k2.5 if gemma-4 returns empty or minimal output.
  */
 export async function extractIdentity(
   env: { AI: Ai },
@@ -52,25 +53,15 @@ export async function extractIdentity(
   const start = Date.now();
 
   try {
-    const content = [
-      ...base64Photos.map((p) => ({
-        type: "image_url" as const,
-        image_url: {
-          url: `data:${p.mediaType};base64,${p.base64}`,
-        },
-      })),
-      { type: "text" as const, text: IDENTITY_EXTRACTION_PROMPT },
-    ];
-
-    const response = await env.AI.run("@cf/google/gemma-4-26b-a4b-it", {
-      messages: [{ role: "user", content } as never],
-    });
-
+    const descriptions = await extractEachImageWithLlama(
+      env,
+      base64Photos,
+      IDENTITY_EXTRACTION_PROMPT,
+    );
     const elapsed = Date.now() - start;
-    const text = readTextResponse(response);
+    const text = descriptions.join("\n\n");
 
     if (!text || text.length < 30) {
-      // Try kimi-k2.5 fallback
       const fallbackResult = await tryFallback(env, base64Photos);
       if (fallbackResult?.description) {
         return {
@@ -80,15 +71,15 @@ export async function extractIdentity(
       }
       return {
         description: "",
-        modelUsed: "gemma-4-26b-a4b-it",
+        modelUsed: "llama-3.2-11b-vision-instruct",
         extractionMs: elapsed,
-        error: "Empty description from gemma-4 and kimi-k2.5 fallback",
+        error: "Empty description from llama vision and kimi-k2.5 fallback",
       };
     }
 
     return {
       description: text,
-      modelUsed: "gemma-4-26b-a4b-it",
+      modelUsed: "llama-3.2-11b-vision-instruct",
       extractionMs: elapsed,
     };
   } catch (err) {
@@ -96,7 +87,7 @@ export async function extractIdentity(
     const message = err instanceof Error ? err.message : "Unknown error";
     return {
       description: "",
-      modelUsed: "gemma-4-26b-a4b-it",
+      modelUsed: "llama-3.2-11b-vision-instruct",
       extractionMs: elapsed,
       error: message,
     };
@@ -110,35 +101,26 @@ export async function extractStyle(
   const start = Date.now();
 
   try {
-    const content = [
-      ...base64Photos.map((p) => ({
-        type: "image_url" as const,
-        image_url: {
-          url: `data:${p.mediaType};base64,${p.base64}`,
-        },
-      })),
-      { type: "text" as const, text: STYLE_EXTRACTION_PROMPT },
-    ];
-
-    const response = await env.AI.run("@cf/google/gemma-4-26b-a4b-it", {
-      messages: [{ role: "user", content } as never],
-    });
-
+    const descriptions = await extractEachImageWithLlama(
+      env,
+      base64Photos,
+      STYLE_EXTRACTION_PROMPT,
+    );
     const elapsed = Date.now() - start;
-    const text = readTextResponse(response);
+    const text = descriptions.join("\n\n");
 
     if (!text || text.length < 30) {
       return {
         description: "",
-        modelUsed: "gemma-4-26b-a4b-it",
+        modelUsed: "llama-3.2-11b-vision-instruct",
         extractionMs: elapsed,
-        error: "Empty style description from gemma-4",
+        error: "Empty style description from llama vision",
       };
     }
 
     return {
       description: text,
-      modelUsed: "gemma-4-26b-a4b-it",
+      modelUsed: "llama-3.2-11b-vision-instruct",
       extractionMs: elapsed,
     };
   } catch (err) {
@@ -146,11 +128,37 @@ export async function extractStyle(
     const message = err instanceof Error ? err.message : "Unknown error";
     return {
       description: "",
-      modelUsed: "gemma-4-26b-a4b-it",
+      modelUsed: "llama-3.2-11b-vision-instruct",
       extractionMs: elapsed,
       error: message,
     };
   }
+}
+
+async function extractEachImageWithLlama(
+  env: { AI: Ai },
+  base64Photos: { base64: string; mediaType: string }[],
+  prompt: string,
+): Promise<string[]> {
+  const descriptions: string[] = [];
+  for (const photo of base64Photos.slice(0, 3)) {
+    const response = await env.AI.run(
+      "@cf/meta/llama-3.2-11b-vision-instruct",
+      {
+        messages: [
+          {
+            role: "system",
+            content: "You are a precise visual analysis assistant.",
+          },
+          { role: "user", content: prompt },
+        ],
+        image: `data:${photo.mediaType};base64,${photo.base64}`,
+      },
+    );
+    const text = readTextResponse(response);
+    if (text.length >= 30) descriptions.push(text);
+  }
+  return descriptions;
 }
 
 /**

@@ -37,7 +37,7 @@ describe("POST /api/profile/build", () => {
       DB: mockD1(),
       STORAGE: mockR2(),
       AI: mockAi({
-        "@cf/google/gemma-4-26b-a4b-it": createGemmaResponse(),
+        "@cf/meta/llama-3.2-11b-vision-instruct": createGemmaResponse(),
         "openai/gpt-image-2": createGptImageResponse(),
       }),
     };
