@@ -309,20 +309,6 @@ export async function buildIdentityProfile(
     )
     .run();
 
-  // 5. Generate reference sheet (non-critical — skip on failure)
-  const sheet = await generateReferenceSheet(
-    env,
-    extraction.description,
-    sessionToken,
-  );
-  if (sheet.success) {
-    await env.DB.prepare(
-      "UPDATE identity_profiles SET reference_r2_key = ?1 WHERE session_token = ?2",
-    )
-      .bind(sheet.r2Key, sessionToken)
-      .run();
-  }
-
   return { success: true };
 }
 
