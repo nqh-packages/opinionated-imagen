@@ -139,24 +139,24 @@ async function extractWithFallback(
 ): Promise<{ text: string; modelUsed: IdentityExtractionResult["modelUsed"] }> {
   try {
     const text = await withTimeout(
-      extractWithKimi(env, base64Photos, prompt),
-      KIMI_EXTRACTION_TIMEOUT_MS,
-      "kimi-k2.5 extraction timed out",
+      extractWithOpenAiVision(env, base64Photos, prompt),
+      GATEWAY_EXTRACTION_TIMEOUT_MS,
+      "openai:gpt-4.1-mini extraction timed out",
     );
     if (text.length >= 30) {
-      return { text, modelUsed: "kimi-k2.5" };
+      return { text, modelUsed: "openai:gpt-4.1-mini" };
     }
   } catch {
-    // Fall through to the Gateway route. The caller records the final model.
+    // Fall through to Workers AI. The caller records the final model.
   }
 
   return {
     text: await withTimeout(
-      extractWithOpenAiVision(env, base64Photos, prompt),
-      GATEWAY_EXTRACTION_TIMEOUT_MS,
-      "openai:gpt-4.1-mini extraction timed out",
+      extractWithKimi(env, base64Photos, prompt),
+      KIMI_EXTRACTION_TIMEOUT_MS,
+      "kimi-k2.5 extraction timed out",
     ),
-    modelUsed: "openai:gpt-4.1-mini",
+    modelUsed: "kimi-k2.5",
   };
 }
 

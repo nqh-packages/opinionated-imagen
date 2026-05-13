@@ -25,8 +25,8 @@ import {
 } from "test-scripts/profile-test-fixtures";
 
 describe("extractIdentity()", () => {
-  // 1. Happy path: Kimi returns valid description
-  it("returns description from Kimi on success", async () => {
+  // 1. Happy path: Gateway vision returns valid description
+  it("returns description from Gateway vision on success", async () => {
     const ai = mockAi({
       "@cf/moonshotai/kimi-k2.5": createGemmaResponse(validDescription()),
     });
@@ -36,7 +36,7 @@ describe("extractIdentity()", () => {
     ]);
 
     expect(result.description).toBeTruthy();
-    expect(result.modelUsed).toBe("kimi-k2.5");
+    expect(result.modelUsed).toBe("openai:gpt-4.1-mini");
     expect(result.extractionMs).toBeGreaterThanOrEqual(0);
     expect(result.error).toBeUndefined();
   });
