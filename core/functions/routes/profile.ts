@@ -183,47 +183,15 @@ profileApp.post("/build", requireAuth, async (c) => {
       .bind(sessionToken)
       .run();
 
-    // Return 200 immediately — frontend starts polling
-    // Identity extraction runs in the background via waitUntil
+    const runProfileBuild = runProfileBuildJob(c.env, sessionToken);
     try {
       if (typeof c.executionCtx?.waitUntil === "function") {
-        c.executionCtx.waitUntil(
-          (async () => {
-            try {
-              const result = await buildIdentityProfile(
-                { AI: c.env.AI, STORAGE: c.env.STORAGE, DB: c.env.DB },
-                sessionToken,
-              );
-              const styleResult = await buildStyleProfile(
-                { AI: c.env.AI, STORAGE: c.env.STORAGE, DB: c.env.DB },
-                sessionToken,
-              );
-
-              if (result.success && styleResult.success) {
-                await c.env.DB.prepare(
-                  "UPDATE sessions SET status = 'ready', updated_at = datetime('now') WHERE token = ?1",
-                )
-                  .bind(sessionToken)
-                  .run();
-              } else {
-                await c.env.DB.prepare(
-                  "UPDATE sessions SET status = 'error', updated_at = datetime('now') WHERE token = ?1",
-                )
-                  .bind(sessionToken)
-                  .run();
-              }
-            } catch (err) {
-              await c.env.DB.prepare(
-                "UPDATE sessions SET status = 'error', updated_at = datetime('now') WHERE token = ?1",
-              )
-                .bind(sessionToken)
-                .run();
-            }
-          })(),
-        );
+        c.executionCtx.waitUntil(runProfileBuild);
+      } else {
+        await runProfileBuild;
       }
     } catch {
-      // executionCtx not available (e.g., test environment)
+      await runProfileBuild;
     }
 
     return c.json({ status: "building_profile" }, 200);
@@ -239,5 +207,38 @@ profileApp.post("/build", requireAuth, async (c) => {
     );
   }
 });
+
+async function runProfileBuildJob(env: Bindings, sessionToken: string) {
+  try {
+    const result = await buildIdentityProfile(
+      { AI: env.AI, STORAGE: env.STORAGE, DB: env.DB },
+      sessionToken,
+    );
+    const styleResult = await buildStyleProfile(
+      { AI: env.AI, STORAGE: env.STORAGE, DB: env.DB },
+      sessionToken,
+    );
+
+    if (result.success && styleResult.success) {
+      await env.DB.prepare(
+        "UPDATE sessions SET status = 'ready', updated_at = datetime('now') WHERE token = ?1",
+      )
+        .bind(sessionToken)
+        .run();
+    } else {
+      await env.DB.prepare(
+        "UPDATE sessions SET status = 'error', updated_at = datetime('now') WHERE token = ?1",
+      )
+        .bind(sessionToken)
+        .run();
+    }
+  } catch {
+    await env.DB.prepare(
+      "UPDATE sessions SET status = 'error', updated_at = datetime('now') WHERE token = ?1",
+    )
+      .bind(sessionToken)
+      .run();
+  }
+}
 
 export default profileApp;
