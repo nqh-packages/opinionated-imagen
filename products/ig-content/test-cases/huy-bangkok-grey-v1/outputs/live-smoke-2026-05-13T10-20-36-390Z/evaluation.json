@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "evaluatedAt": "2026-05-13T10:24:00.000Z",
+  "evaluator": "codex",
+  "approvalStatus": "pending_huy_review",
+  "runtimeVerdict": "pass",
+  "artifactPath": "contact-sheet.png",
+  "rubric": {
+    "realPhotoPlausibility": {
+      "status": "pass",
+      "notes": "The sheet reads as plausible cafe/editorial photography with natural window light, shallow depth of field, and no obvious illustration artifacts."
+    },
+    "identityContinuity": {
+      "status": "needs_huy_review",
+      "notes": "The generated subject is visually consistent across variations, but final identity fidelity requires Huy approval against the original Bangkok source photos."
+    },
+    "styleTransfer": {
+      "status": "partial_pass",
+      "notes": "The output captures candid editorial cafe energy, muted warm color, practical daylight, and close personal framing. It is more cafe-focused and less broad-story/location-varied than the Grey reference set."
+    },
+    "variationQuality": {
+      "status": "pass",
+      "notes": "The sheet contains 8 usable framing/pose variations without preserving the weak original selfie poses."
+    },
+    "pipelineTraceability": {
+      "status": "pass",
+      "notes": "run-metadata.json records live Worker URL, redacted session token, pack id, R2 artifact key, provider route, Gateway id, source inputs, and completed uploads."
+    }
+  },
+  "knownGaps": [
+    "Huy approval is still required before treating this as final product quality.",
+    "The MVP route now awaits pack generation synchronously; a durable async runner is still needed before high-volume production.",
+    "Krea remains evaluation/fallback only and was not promoted into core ownership."
+  ]
+}
