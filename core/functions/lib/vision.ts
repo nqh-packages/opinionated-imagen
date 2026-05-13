@@ -1,5 +1,5 @@
 /**
- * Vision extraction engine — gemma-4 face/body descriptors + gpt-image-2 reference sheet.
+ * Vision extraction engine — Kimi vision descriptors + gpt-image-2 reference sheet.
  *
  * Runs inside a Cloudflare Worker with the AI binding.
  * No console.log — use structured diagnostics.
@@ -16,10 +16,7 @@ import { getProductWorkspace } from "../generated/products";
 
 export interface IdentityExtractionResult {
   description: string;
-  modelUsed:
-    | "llama-3.2-11b-vision-instruct"
-    | "gemma-4-26b-a4b-it"
-    | "kimi-k2.5";
+  modelUsed: "kimi-k2.5" | "gemma-4-26b-a4b-it";
   extractionMs: number;
   error?: string;
 }
@@ -43,7 +40,7 @@ interface ExtractionEnv {
 // ─── Identity Extraction ───────────────────────────────────────────
 
 /**
- * Run Llama Vision on base64-encoded selfie photos to produce
+ * Run Kimi vision on base64-encoded selfie photos to produce
  * a structured text description of the person's appearance.
  */
 export async function extractIdentity(
@@ -53,33 +50,25 @@ export async function extractIdentity(
   const start = Date.now();
 
   try {
-    const descriptions = await extractEachImageWithLlama(
+    const text = await extractWithKimi(
       env,
       base64Photos,
       IDENTITY_EXTRACTION_PROMPT,
     );
     const elapsed = Date.now() - start;
-    const text = descriptions.join("\n\n");
 
     if (!text || text.length < 30) {
-      const fallbackResult = await tryFallback(env, base64Photos);
-      if (fallbackResult?.description) {
-        return {
-          ...fallbackResult,
-          extractionMs: elapsed + (Date.now() - start),
-        };
-      }
       return {
         description: "",
-        modelUsed: "llama-3.2-11b-vision-instruct",
+        modelUsed: "kimi-k2.5",
         extractionMs: elapsed,
-        error: "Empty description from llama vision and kimi-k2.5 fallback",
+        error: "Empty description from kimi-k2.5",
       };
     }
 
     return {
       description: text,
-      modelUsed: "llama-3.2-11b-vision-instruct",
+      modelUsed: "kimi-k2.5",
       extractionMs: elapsed,
     };
   } catch (err) {
@@ -87,7 +76,7 @@ export async function extractIdentity(
     const message = err instanceof Error ? err.message : "Unknown error";
     return {
       description: "",
-      modelUsed: "llama-3.2-11b-vision-instruct",
+      modelUsed: "kimi-k2.5",
       extractionMs: elapsed,
       error: message,
     };
@@ -101,26 +90,25 @@ export async function extractStyle(
   const start = Date.now();
 
   try {
-    const descriptions = await extractEachImageWithLlama(
+    const text = await extractWithKimi(
       env,
       base64Photos,
       STYLE_EXTRACTION_PROMPT,
     );
     const elapsed = Date.now() - start;
-    const text = descriptions.join("\n\n");
 
     if (!text || text.length < 30) {
       return {
         description: "",
-        modelUsed: "llama-3.2-11b-vision-instruct",
+        modelUsed: "kimi-k2.5",
         extractionMs: elapsed,
-        error: "Empty style description from llama vision",
+        error: "Empty style description from kimi-k2.5",
       };
     }
 
     return {
       description: text,
-      modelUsed: "llama-3.2-11b-vision-instruct",
+      modelUsed: "kimi-k2.5",
       extractionMs: elapsed,
     };
   } catch (err) {
@@ -128,72 +116,32 @@ export async function extractStyle(
     const message = err instanceof Error ? err.message : "Unknown error";
     return {
       description: "",
-      modelUsed: "llama-3.2-11b-vision-instruct",
+      modelUsed: "kimi-k2.5",
       extractionMs: elapsed,
       error: message,
     };
   }
 }
 
-async function extractEachImageWithLlama(
+async function extractWithKimi(
   env: { AI: Ai },
   base64Photos: { base64: string; mediaType: string }[],
   prompt: string,
-): Promise<string[]> {
-  const descriptions: string[] = [];
-  for (const photo of base64Photos.slice(0, 3)) {
-    const response = await env.AI.run(
-      "@cf/meta/llama-3.2-11b-vision-instruct",
-      {
-        messages: [
-          {
-            role: "system",
-            content: "You are a precise visual analysis assistant.",
-          },
-          { role: "user", content: prompt },
-        ],
-        image: `data:${photo.mediaType};base64,${photo.base64}`,
+): Promise<string> {
+  const content = [
+    ...base64Photos.slice(0, 3).map((p) => ({
+      type: "image_url" as const,
+      image_url: {
+        url: `data:${p.mediaType};base64,${p.base64}`,
       },
-    );
-    const text = readTextResponse(response);
-    if (text.length >= 30) descriptions.push(text);
-  }
-  return descriptions;
-}
+    })),
+    { type: "text" as const, text: prompt },
+  ];
 
-/**
- * Fallback: try kimi-k2.5 with the same photos and prompt.
- */
-async function tryFallback(
-  env: { AI: Ai },
-  base64Photos: { base64: string; mediaType: string }[],
-): Promise<IdentityExtractionResult | null> {
-  try {
-    const content = [
-      ...base64Photos.map((p) => ({
-        type: "image_url" as const,
-        image_url: {
-          url: `data:${p.mediaType};base64,${p.base64}`,
-        },
-      })),
-      { type: "text" as const, text: IDENTITY_EXTRACTION_PROMPT },
-    ];
-
-    const start = Date.now();
-    const response = await env.AI.run("@cf/moonshotai/kimi-k2.5", {
-      messages: [{ role: "user", content } as never],
-    });
-    const elapsed = Date.now() - start;
-    const text = readTextResponse(response);
-
-    if (!text || text.length < 30) {
-      return null;
-    }
-
-    return { description: text, modelUsed: "kimi-k2.5", extractionMs: elapsed };
-  } catch {
-    return null;
-  }
+  const response = await env.AI.run("@cf/moonshotai/kimi-k2.5", {
+    messages: [{ role: "user", content } as never],
+  });
+  return readTextResponse(response);
 }
 
 // ─── Reference Sheet Generation ────────────────────────────────────

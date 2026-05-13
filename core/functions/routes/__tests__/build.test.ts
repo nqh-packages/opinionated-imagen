@@ -37,7 +37,7 @@ describe("POST /api/profile/build", () => {
       DB: mockD1(),
       STORAGE: mockR2(),
       AI: mockAi({
-        "@cf/meta/llama-3.2-11b-vision-instruct": createGemmaResponse(),
+        "@cf/moonshotai/kimi-k2.5": createGemmaResponse(),
         "openai/gpt-image-2": createGptImageResponse(),
       }),
     };

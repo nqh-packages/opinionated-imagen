@@ -25,30 +25,10 @@ import {
 } from "test-scripts/profile-test-fixtures";
 
 describe("extractIdentity()", () => {
-  // 1. Happy path: Llama Vision returns valid description
-  it("returns description from Llama Vision on success", async () => {
+  // 1. Happy path: Kimi returns valid description
+  it("returns description from Kimi on success", async () => {
     const ai = mockAi({
-      "@cf/meta/llama-3.2-11b-vision-instruct":
-        createGemmaResponse(validDescription()),
-    });
-
-    const result = await extractIdentity({ AI: ai as any }, [
-      { base64: "fakebase64", mediaType: "image/jpeg" },
-    ]);
-
-    expect(result.description).toBeTruthy();
-    expect(result.modelUsed).toBe("llama-3.2-11b-vision-instruct");
-    expect(result.extractionMs).toBeGreaterThanOrEqual(0);
-    expect(result.error).toBeUndefined();
-  });
-
-  // 2. Fallback: Llama Vision empty, kimi succeeds
-  it("falls back to kimi when Llama Vision returns empty", async () => {
-    const ai = mockAi({
-      "@cf/meta/llama-3.2-11b-vision-instruct": { response: "" },
-      "@cf/moonshotai/kimi-k2.5": createGemmaResponse(
-        "Kimiko desc: male early 20s...",
-      ),
+      "@cf/moonshotai/kimi-k2.5": createGemmaResponse(validDescription()),
     });
 
     const result = await extractIdentity({ AI: ai as any }, [
@@ -57,12 +37,29 @@ describe("extractIdentity()", () => {
 
     expect(result.description).toBeTruthy();
     expect(result.modelUsed).toBe("kimi-k2.5");
+    expect(result.extractionMs).toBeGreaterThanOrEqual(0);
+    expect(result.error).toBeUndefined();
   });
 
-  // 3. Both models fail: returns error
-  it("returns error when both Llama Vision and kimi fail", async () => {
+  // 2. Empty model output is treated as extraction failure
+  it("returns error when Kimi returns empty", async () => {
+    const ai = mockAi({
+      "@cf/moonshotai/kimi-k2.5": { response: "" },
+    });
+
+    const result = await extractIdentity({ AI: ai as any }, [
+      { base64: "fakebase64", mediaType: "image/jpeg" },
+    ]);
+
+    expect(result.description).toBe("");
+    expect(result.error).toBeTruthy();
+    expect(result.modelUsed).toBe("kimi-k2.5");
+  });
+
+  // 3. Model unavailable: returns error
+  it("returns error when Kimi is unavailable", async () => {
     const ai = mockAi(
-      { "@cf/meta/llama-3.2-11b-vision-instruct": { response: "" } },
+      { "@cf/moonshotai/kimi-k2.5": { response: "" } },
       { "@cf/moonshotai/kimi-k2.5": "Model unavailable" },
     );
 
@@ -74,12 +71,9 @@ describe("extractIdentity()", () => {
     expect(result.error).toBeTruthy();
   });
 
-  // 4. Llama Vision throws error
-  it("returns error when Llama Vision throws", async () => {
-    const ai = mockAi(
-      {},
-      { "@cf/meta/llama-3.2-11b-vision-instruct": "AI service timeout" },
-    );
+  // 4. Kimi throws error
+  it("returns error when Kimi throws", async () => {
+    const ai = mockAi({}, { "@cf/moonshotai/kimi-k2.5": "AI service timeout" });
 
     const result = await extractIdentity({ AI: ai as any }, [
       { base64: "fakebase64", mediaType: "image/jpeg" },
@@ -90,17 +84,17 @@ describe("extractIdentity()", () => {
   });
 
   // 5. Short description treated as failure
-  it("treats very short response as failure and falls back", async () => {
+  it("treats very short response as failure", async () => {
     const ai = mockAi({
-      "@cf/meta/llama-3.2-11b-vision-instruct": { response: "Hi" },
-      "@cf/moonshotai/kimi-k2.5": createGemmaResponse(validDescription()),
+      "@cf/moonshotai/kimi-k2.5": { response: "Hi" },
     });
 
     const result = await extractIdentity({ AI: ai as any }, [
       { base64: "fakebase64", mediaType: "image/jpeg" },
     ]);
 
-    expect(result.description.length).toBeGreaterThan(20);
+    expect(result.description).toBe("");
+    expect(result.error).toBeTruthy();
     expect(result.modelUsed).toBe("kimi-k2.5");
   });
 });
@@ -160,8 +154,7 @@ describe("buildIdentityProfile()", () => {
   // 9. Happy path: full profile build succeeds
   it("builds identity profile from selfie photos", async () => {
     const ai = mockAi({
-      "@cf/meta/llama-3.2-11b-vision-instruct":
-        createGemmaResponse(validDescription()),
+      "@cf/moonshotai/kimi-k2.5": createGemmaResponse(validDescription()),
       "openai/gpt-image-2": createGptImageResponse(),
     });
     const storage = mockR2(createSelfieObjects(10));
@@ -200,8 +193,7 @@ describe("buildIdentityProfile()", () => {
       },
     ];
     const ai = mockAi({
-      "@cf/meta/llama-3.2-11b-vision-instruct":
-        createGemmaResponse(validDescription()),
+      "@cf/moonshotai/kimi-k2.5": createGemmaResponse(validDescription()),
     });
     const storage = mockR2(objects);
     const db = mockD1();
@@ -245,8 +237,7 @@ describe("buildIdentityProfile()", () => {
   it("succeeds as text-only when gpt-image-2 fails", async () => {
     const ai = mockAi(
       {
-        "@cf/meta/llama-3.2-11b-vision-instruct":
-          createGemmaResponse(validDescription()),
+        "@cf/moonshotai/kimi-k2.5": createGemmaResponse(validDescription()),
       },
       { "openai/gpt-image-2": "Gateway error" },
     );
@@ -264,7 +255,7 @@ describe("buildIdentityProfile()", () => {
   // 13. State after failure: both models fail → false
   it("returns failure when vision extraction fails entirely", async () => {
     const ai = mockAi(
-      { "@cf/meta/llama-3.2-11b-vision-instruct": { response: "" } },
+      { "@cf/moonshotai/kimi-k2.5": { response: "" } },
       { "@cf/moonshotai/kimi-k2.5": "Model unavailable" },
     );
     const storage = mockR2(createSelfieObjects(10));
