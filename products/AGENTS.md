@@ -38,6 +38,16 @@ pnpm product:compile ig-content
 
 Run validation after editing `product.json`, `CONTEXT.md`, `brand/`, or `scenes/`. Run compile before Worker runtime verification.
 
+`pnpm product:check` is the blocking Product Workspace gate. It verifies:
+
+- `products/{product}` source files are valid.
+- `core/functions/generated/products.ts` is current.
+- legacy `niches/` mirrors are absent.
+- legacy `core/functions/lib/scenes-data.ts` is absent.
+- scene source files do not store derived `shotCount`.
+
+The same gate is exposed through qlty as `product-workspace`.
+
 ## Scene Files
 
 Scene JSON files are canonical product content. The compiler derives `shotCount` from `compositionPlan`; do not store `shotCount` in scene source files.

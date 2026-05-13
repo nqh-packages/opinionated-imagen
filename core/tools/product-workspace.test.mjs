@@ -95,4 +95,68 @@ describe('product workspace compiler', () => {
     expect(result.stderr).toContain('PRODUCT_ID_MISMATCH');
     expect(result.stderr).toContain('suggestion=');
   });
+
+  it('blocks stale generated artifacts', () => {
+    const root = createWorkspace();
+    const compileResult = runTool(['compile'], root);
+    expect(compileResult.status, compileResult.stderr || compileResult.stdout).toBe(0);
+
+    const scenePath = join(root, 'products', 'ig-content', 'scenes', 'cafe-aesthetic.json');
+    const scene = JSON.parse(readFileSync(scenePath, 'utf8'));
+    scene.name = 'Changed Scene';
+    writeFileSync(scenePath, JSON.stringify(scene, null, 2));
+
+    const result = runTool(['check'], root);
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain('STALE_GENERATED_PRODUCT_ARTIFACT');
+    expect(result.stderr).toContain('pnpm product:compile');
+  });
+
+  it('blocks legacy niches directory mirrors', () => {
+    const root = createWorkspace();
+    mkdirSync(join(root, 'niches', 'ig-content'), { recursive: true });
+
+    const result = runTool(['check'], root);
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain('FORBIDDEN_PRODUCT_MIRROR');
+  });
+
+  it('blocks derived shotCount in scene source files', () => {
+    const root = createWorkspace();
+    const scenePath = join(root, 'products', 'ig-content', 'scenes', 'cafe-aesthetic.json');
+    const scene = JSON.parse(readFileSync(scenePath, 'utf8'));
+    scene.shotCount = 5;
+    writeFileSync(scenePath, JSON.stringify(scene, null, 2));
+
+    const result = runTool(['validate'], root);
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain('SCENE_SOURCE_HAS_DERIVED_FIELD');
+  });
+
+  it('passes check when product source and generated artifact match', () => {
+    const root = createWorkspace();
+    const compileResult = runTool(['compile'], root);
+    expect(compileResult.status, compileResult.stderr || compileResult.stdout).toBe(0);
+
+    const result = runTool(['check'], root);
+
+    expect(result.status, result.stderr || result.stdout).toBe(0);
+    expect(result.stdout).toContain('event=product_workspace_check status=ok');
+  });
+
+  it('writes SARIF diagnostics for qlty when product checks fail', () => {
+    const root = createWorkspace();
+    mkdirSync(join(root, 'niches', 'ig-content'), { recursive: true });
+    const outputPath = join(root, 'product-workspace.sarif');
+
+    const result = runTool(['check', '--sarif', '--output', outputPath], root);
+    const sarif = JSON.parse(readFileSync(outputPath, 'utf8'));
+
+    expect(result.status).toBe(1);
+    expect(sarif.runs[0].results[0].ruleId).toBe('FORBIDDEN_PRODUCT_MIRROR');
+    expect(sarif.runs[0].results[0].message.text).toContain('event=product_workspace_validation');
+  });
 });

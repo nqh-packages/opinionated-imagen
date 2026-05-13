@@ -57,6 +57,7 @@ package.json                ← Root build config. Scripts point to core/* paths
 | **New file types at root require a justification comment in this file.** Config files, deploy scripts, and root docs are the only valid root-level entries. | Prevents root from accumulating misc files. |
 | **New products add a script to package.json: `deploy:{product}`.** Runs `PRODUCT_ID={product} pnpm build && wrangler deploy`. | Every product must be deployable independently. |
 | **Products compile before runtime.** Run `pnpm product:validate` and `pnpm product:compile` after product workspace changes. | Worker bundles derived files from `core/functions/generated/`; `products/` remains canonical. |
+| **Product Workspace drift must be blocked.** `pnpm product:check` and qlty's `product-workspace` driver block stale generated artifacts, legacy `niches/` mirrors, legacy Scene mirrors in `core`, and derived fields in source Scene JSON. | Product Workspace files are the source; runtime artifacts are derived. |
 
 ## Stack
 

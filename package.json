@@ -16,6 +16,7 @@
     "test": "pnpm product:compile && vitest run",
     "product:validate": "node core/tools/product-workspace.mjs validate",
     "product:compile": "node core/tools/product-workspace.mjs compile",
+    "product:check": "node core/tools/product-workspace.mjs check",
     "deploy:ig": "PRODUCT_ID=ig-content pnpm build && wrangler deploy",
     "deploy:headshots": "PRODUCT_ID=headshots pnpm build && wrangler deploy",
     "deploy:dating": "PRODUCT_ID=dating pnpm build && wrangler deploy"
