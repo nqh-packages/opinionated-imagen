@@ -182,22 +182,12 @@ packsApp.post("/", requireAuth, async (c) => {
       .bind(contactSheetId, packId, userId)
       .run();
 
-    const runGeneration = generateContactSheet(c.env, {
+    await generateContactSheet(c.env, {
       packId,
       userId,
       sessionToken: body.sessionToken,
       intention,
     });
-
-    try {
-      if (typeof c.executionCtx?.waitUntil === "function") {
-        c.executionCtx.waitUntil(runGeneration);
-      } else {
-        await runGeneration;
-      }
-    } catch {
-      await runGeneration;
-    }
 
     return c.json(
       {
