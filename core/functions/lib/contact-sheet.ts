@@ -41,7 +41,6 @@ export async function generateContactSheet(
     const response = await env.AI.run(
       "openai/gpt-image-2",
       {
-        model: "gpt-image-2",
         prompt,
         quality: "medium",
         size: "1536x1024",
