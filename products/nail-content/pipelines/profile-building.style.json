@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "nail-content.profile-building.style",
+  "pipelineType": "profile-building",
+  "description": "Nail Content Ekip Style Profile pipeline configuration.",
+  "enabled": true,
+  "artifact": "style-profile",
+  "steps": [
+    {
+      "stepId": "build-style-profile",
+      "providerRoute": "cloudflare-workers-ai:@cf/google/gemma-4-26b-a4b-it"
+    }
+  ],
+  "approvalPolicy": {
+    "productionChangesRequireApproval": true
+  }
+}

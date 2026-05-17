@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "curate-contact-sheet",
+  "pipelineTypes": ["contact-sheet", "evaluation"],
+  "description": "Select and order Variations into a Contact Sheet according to Product Workspace quality rules.",
+  "inputs": ["variations", "intention", "quality-scores"],
+  "outputs": ["contact-sheet"],
+  "providerRouteRequired": false,
+  "approvalRequiredForRealIdentityData": false
+}

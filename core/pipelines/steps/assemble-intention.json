@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "assemble-intention",
+  "pipelineTypes": ["contact-sheet", "evaluation"],
+  "description": "Assemble or normalize an Intention from Creator inputs, Product Workspace rules, and selected Preset or Prompt.",
+  "inputs": [
+    "creator",
+    "identity-profile",
+    "style-profile",
+    "preset",
+    "prompt",
+    "product-image"
+  ],
+  "outputs": ["intention"],
+  "providerRouteRequired": false,
+  "approvalRequiredForRealIdentityData": false
+}

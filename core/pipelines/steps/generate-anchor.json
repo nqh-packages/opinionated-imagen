@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "generate-anchor",
+  "pipelineTypes": ["contact-sheet", "evaluation"],
+  "description": "Generate the anchor image for an Intention using configured Identity Profile, Style Profile, and optional Product Image inputs.",
+  "inputs": ["intention", "identity-profile", "style-profile", "product-image"],
+  "outputs": ["variation"],
+  "providerRouteRequired": true,
+  "approvalRequiredForRealIdentityData": true
+}

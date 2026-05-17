@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "nail-content.contact-sheet",
+  "pipelineType": "contact-sheet",
+  "description": "Nail Content Ekip production Contact Sheet pipeline configuration.",
+  "enabled": true,
+  "steps": [
+    {
+      "stepId": "assemble-intention"
+    },
+    {
+      "stepId": "generate-anchor",
+      "providerRoute": "cloudflare-ai-gateway:openai/gpt-image-2",
+      "qualityPolicy": "identity-sensitive"
+    },
+    {
+      "stepId": "generate-variations",
+      "providerRoute": "cloudflare-ai-gateway:openai/gpt-image-2",
+      "variationCount": 7
+    },
+    {
+      "stepId": "curate-contact-sheet"
+    }
+  ],
+  "approvalPolicy": {
+    "productionChangesRequireApproval": true,
+    "realIdentityDataRequiresApprovalForNewProvider": true
+  }
+}

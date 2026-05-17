@@ -36,7 +36,7 @@ Workers AI model names use `@cf/<provider>/<model>` format in the catalog and AP
 Proxied models (gpt-image-2, imagen-4, etc.) require an AI Gateway. The gateway acts as a proxy between the Worker and the external provider.
 
 1. Create the gateway in Cloudflare Dashboard: `AI → AI Gateway → Create Gateway`
-2. Name it for the deployable product (e.g., `opinionated-imagen-ig`)
+2. Name it for the deployable product (e.g., `opinionated-imagen-nail`)
 3. Configure the provider API key in the gateway settings (e.g., OpenAI API key for gpt-image-2)
 4. The gateway has `authentication: true` by default — requests to the gateway endpoint require a `Bearer` token (Cloudflare API token with AI Gateway Run permission). Set `authentication: false` if API-key-based auth is preferred.
 5. Store the gateway id in `products/{product}/product.json`; runtime code reads it from the compiled Product Workspace artifact

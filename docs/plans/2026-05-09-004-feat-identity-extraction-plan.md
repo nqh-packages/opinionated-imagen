@@ -66,7 +66,7 @@ Two artifacts, one question to answer:
 
 - **Upload pipeline plan** (`docs/plans/2026-05-09-001-feat-upload-pipeline-plan.md`): Establishes the session state machine (`collecting` → `building_profile` → `ready` / `error`), R2 uploads via presigned URLs, and the status polling pattern.
 - **Profile routes** (`functions/routes/profile.ts`): Existing stubs for `GET /api/profile/status` and `POST /api/profile/build`. The build handler transitions state to `building_profile` but does no actual work — this plan adds the real work.
-- **Workers AI call pattern** (from `MODELS.md`): `env.AI.run('model-name', { messages: [...] })` for hosted models (gemma-4, kimi-k2.6). `env.AI.run('model-name', { prompt, images, quality, size }, { gateway: { id: 'opinionated-imagen-ig' } })` for proxied models (gpt-image-2).
+- **Workers AI call pattern** (from `MODELS.md`): `env.AI.run('model-name', { messages: [...] })` for hosted models (gemma-4, kimi-k2.6). `env.AI.run('model-name', { prompt, images, quality, size }, { gateway: { id: 'opinionated-imagen-nail' } })` for proxied models (gpt-image-2).
 - **R2 read in Workers** (from `storage.ts`): R2 bucket binding `env.STORAGE` provides `bucket.get(key)` returning `R2ObjectBody`. Photos are at key pattern `uploads/{sessionToken}/selfie/{timestamp}-{random}.{ext}`.
 - **Structured diagnostics** (`functions/lib/diagnostics.ts`): `serviceUnavailable()` with `retriable: true` for downstream failures. `badRequest()` / `preconditionFailed()` for validation errors.
 - **D1 migration pattern** (`functions/migrations/0001_*.sql`): Sequential SQL files. `CREATE TABLE IF NOT EXISTS`. CHECK constraints for enums. FK references with indexes.
@@ -78,7 +78,7 @@ Two artifacts, one question to answer:
 - **R2 key pattern**: `uploads/{sessionToken}/{type}/{timestamp}-{random6}.{ext}`. Selfies are `selfie` type. The identity reference sheet will be stored at `profiles/{sessionToken}/identity-reference.png`.
 - **Workers AI image input format**: gpt-image-2 accepts base64-encoded images or data URIs as strings in the `images` array. Must convert R2 objects to base64 before passing.
 - **D1 updates after response**: The Worker can continue processing after returning the response. The build handler returns `{ status: 'building_profile' }` immediately, then continues with AI work. This is acceptable for the 30s budget.
-- **Model availability**: `gemma-4-26b-a4b-it` is a hosted Workers AI model (no gateway needed). `openai/gpt-image-2` is proxied via AI Gateway and needs `{ gateway: { id: 'opinionated-imagen-ig' } }`.
+- **Model availability**: `gemma-4-26b-a4b-it` is a hosted Workers AI model (no gateway needed). `openai/gpt-image-2` is proxied via AI Gateway and needs `{ gateway: { id: 'opinionated-imagen-nail' } }`.
 
 ### Test Fixture — Canonical Creator
 
@@ -256,7 +256,7 @@ Once U4 is implemented:
 The ultimate test — does the extracted profile actually produce consistent generations of the same person?
 
 1. Take the generated reference sheet
-2. Feed it as input to gpt-image-2 alongside a Scene description: "Cafe Aesthetic — put this person at a warm cafe table, morning window light"
+2. Feed it as input to gpt-image-2 alongside a Scene description: "Client Result Close-Up — put this person at a warm cafe table, morning window light"
 3. Look at the output. Does it look like Huy? Or does it look like someone who vaguely resembles Huy?
 4. Run the same Scene twice — does the person look the same both times? (Consistency across runs)
 
@@ -531,7 +531,7 @@ async function generateReferenceSheet(
         size: '1536x1024', // landscape: three views side by side
         output_format: 'png',
       },
-      { gateway: { id: 'opinionated-imagen-ig' } },
+      { gateway: { id: 'opinionated-imagen-nail' } },
     );
 
     // gpt-image-2 returns base64 image data in the response
@@ -554,7 +554,7 @@ async function generateReferenceSheet(
 - Size is landscape `1536x1024` to accommodate three views side by side.
 - Output format is PNG (lossless, no compression artifacts on a reference image).
 - R2 key: `profiles/{sessionToken}/identity-reference.png` — separate prefix from uploads for lifecycle management.
-- gpt-image-2 is proxied via AI Gateway — must include `{ gateway: { id: 'opinionated-imagen-ig' } }`.
+- gpt-image-2 is proxied via AI Gateway — must include `{ gateway: { id: 'opinionated-imagen-nail' } }`.
 
 **Patterns to follow:**
 - Workers AI call pattern from `MODELS.md`.
@@ -767,7 +767,7 @@ async function buildIdentityProfile(env: Env, sessionToken: string): Promise<{ s
 |------|------------|
 | Workers 30s CPU timeout exceeded (gemma takes long + gpt-image-2 takes long) | gemma-4 <10s, gpt-image-2 <20s = <30s total. If exceeded, store partial results and fail gracefully. |
 | Workers memory overflow from base64 conversion of large R2 images | Skip images >1MB during download. Log diagnostic. Minimum 3 usable images required. |
-| AI Gateway not configured (gpt-image-2 requires gateway) | Instructions in MODELS.md and wrangler setup. The gateway `opinionated-imagen-ig` must exist in Cloudflare dashboard. |
+| AI Gateway not configured (gpt-image-2 requires gateway) | Instructions in MODELS.md and wrangler setup. The gateway `opinionated-imagen-nail` must exist in Cloudflare dashboard. |
 | gemma-4 output quality is too low for the reference sheet prompt | Fallback to kimi-k2.6 (same prompt). If both fail, text-only profile. If text quality is marginal, the gpt-image-2 output will reflect that — acceptable for MVP. |
 | **gemma-4 fails to produce a recognizable description of Huy** | **This is the highest-risk single point.** If the vision model can't describe a known face with 9 multi-angle photos, the architecture is wrong (e.g., the prompt needs tuning, or a different model is needed). Mitigation: test gemma-4 first (Phase 1) before building any Worker code. |
 | **gpt-image-2 produces unusable multi-angle reference sheets** | Try single-portrait instead of multi-angle. Or use a different model (seedream-5-lite if multi-ref is confirmed). The verification script is the fail-fast gate. |
@@ -778,7 +778,7 @@ async function buildIdentityProfile(env: Env, sessionToken: string): Promise<{ s
 
 ## Documentation / Operational Notes
 
-- **AI Gateway setup**: `opinionated-imagen-ig` gateway must exist in Cloudflare dashboard (AI → AI Gateway → Create Gateway). Required for gpt-image-2 calls.
+- **AI Gateway setup**: `opinionated-imagen-nail` gateway must exist in Cloudflare dashboard (AI → AI Gateway → Create Gateway). Required for gpt-image-2 calls.
 - **D1 migration ordering**: U1 (0004) before U6 (0005). The profile_failed status migration is separate because it's cosmetic — the system works with `'error'` in the meantime.
 - **Monitoring**: After deployment, watch for sessions stuck in `building_profile` — this indicates the `waitUntil` work terminated before completion.
 - **Prompt tuning**: The gemma-4 prompt and gpt-image-2 prompt are starting points. The canonical test data (Huy's photos + ground truth JSON) drives iteration. Record all prompt changes and their impact on the 11-point comparison.

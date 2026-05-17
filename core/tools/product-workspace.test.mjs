@@ -10,7 +10,7 @@ const toolPath = new URL('./product-workspace.mjs', import.meta.url).pathname;
 
 function createWorkspace() {
   const root = mkdtempSync(join(tmpdir(), 'opinionated-imagen-product-workspace-'));
-  const productDir = join(root, 'products', 'ig-content');
+  const productDir = join(root, 'products', 'nail-content');
   mkdirSync(join(productDir, 'scenes'), { recursive: true });
   mkdirSync(join(productDir, 'brand'), { recursive: true });
 
@@ -18,11 +18,11 @@ function createWorkspace() {
     join(productDir, 'product.json'),
     JSON.stringify(
       {
-        id: 'ig-content',
-        name: 'IG Content',
+        id: 'nail-content',
+        name: 'Nail Content Ekip',
         sourceLocale: 'en',
-        gatewayId: 'opinionated-imagen-ig',
-        deploy: { script: 'deploy:ig' },
+        gatewayId: 'opinionated-imagen-nail',
+        deploy: { script: 'deploy:nail' },
         pricing: { singleDropUsd: 10, monthlyAccessUsd: 29, monthlyDrops: 4 },
         brand: { designedByBrandr: true, brandrUrl: 'https://bybrandr.com' },
       },
@@ -30,7 +30,7 @@ function createWorkspace() {
       2,
     ),
   );
-  writeFileSync(join(productDir, 'PRODUCT.md'), '# IG Content\n');
+  writeFileSync(join(productDir, 'PRODUCT.md'), '# Nail Content Ekip\n');
   writeFileSync(
     join(productDir, 'CONTEXT.md'),
     '| User sees | Maps to canonical term |\n|---|---|\n| Scene | Preset |\n',
@@ -39,14 +39,14 @@ function createWorkspace() {
   writeFileSync(join(productDir, 'brand', 'copy.json'), '{}\n');
   writeFileSync(join(productDir, 'brand', 'tokens.json'), '{}\n');
   writeFileSync(
-    join(productDir, 'scenes', 'cafe-aesthetic.json'),
+    join(productDir, 'scenes', 'client-result-closeup.json'),
     JSON.stringify(
       {
-        id: 'cafe-aesthetic',
-        name: 'Cafe Aesthetic',
-        description: 'Relaxed cafe moments',
-        baseScene: 'A person sitting at a cafe table.',
-        tags: ['warm', 'candid'],
+        id: 'client-result-closeup',
+        name: 'Client Result Close-Up',
+        description: 'Clean nail result photos',
+        baseScene: 'A finished manicure photographed on natural hands.',
+        tags: ['result', 'close-up'],
         compositionPlan: [
           { type: 'Seated portrait', ratio: 3 },
           { type: 'Detail shot', ratio: 2 },
@@ -76,15 +76,15 @@ describe('product workspace compiler', () => {
 
     expect(result.status, result.stderr || result.stdout).toBe(0);
     const generated = readFileSync(generatedPath, 'utf8');
-    expect(generated).toContain('ig-content');
-    expect(generated).toContain('Cafe Aesthetic');
+    expect(generated).toContain('nail-content');
+    expect(generated).toContain('Client Result Close-Up');
     expect(generated).toContain('"shotCount": 5');
-    expect(generated).toContain('opinionated-imagen-ig');
+    expect(generated).toContain('opinionated-imagen-nail');
   });
 
   it('rejects a product workspace when manifest id and directory name drift', () => {
     const root = createWorkspace();
-    const manifestPath = join(root, 'products', 'ig-content', 'product.json');
+    const manifestPath = join(root, 'products', 'nail-content', 'product.json');
     const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
     manifest.id = 'wrong-id';
     writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
@@ -101,7 +101,7 @@ describe('product workspace compiler', () => {
     const compileResult = runTool(['compile'], root);
     expect(compileResult.status, compileResult.stderr || compileResult.stdout).toBe(0);
 
-    const scenePath = join(root, 'products', 'ig-content', 'scenes', 'cafe-aesthetic.json');
+    const scenePath = join(root, 'products', 'nail-content', 'scenes', 'client-result-closeup.json');
     const scene = JSON.parse(readFileSync(scenePath, 'utf8'));
     scene.name = 'Changed Scene';
     writeFileSync(scenePath, JSON.stringify(scene, null, 2));
@@ -115,7 +115,7 @@ describe('product workspace compiler', () => {
 
   it('blocks legacy niches directory mirrors', () => {
     const root = createWorkspace();
-    mkdirSync(join(root, 'niches', 'ig-content'), { recursive: true });
+    mkdirSync(join(root, 'niches', 'nail-content'), { recursive: true });
 
     const result = runTool(['check'], root);
 
@@ -125,7 +125,7 @@ describe('product workspace compiler', () => {
 
   it('blocks derived shotCount in scene source files', () => {
     const root = createWorkspace();
-    const scenePath = join(root, 'products', 'ig-content', 'scenes', 'cafe-aesthetic.json');
+    const scenePath = join(root, 'products', 'nail-content', 'scenes', 'client-result-closeup.json');
     const scene = JSON.parse(readFileSync(scenePath, 'utf8'));
     scene.shotCount = 5;
     writeFileSync(scenePath, JSON.stringify(scene, null, 2));
@@ -149,7 +149,7 @@ describe('product workspace compiler', () => {
 
   it('writes SARIF diagnostics for qlty when product checks fail', () => {
     const root = createWorkspace();
-    mkdirSync(join(root, 'niches', 'ig-content'), { recursive: true });
+    mkdirSync(join(root, 'niches', 'nail-content'), { recursive: true });
     const outputPath = join(root, 'product-workspace.sarif');
 
     const result = runTool(['check', '--sarif', '--output', outputPath], root);

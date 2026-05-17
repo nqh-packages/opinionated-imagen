@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "id": "nail-content.profile-building.identity",
+  "pipelineType": "profile-building",
+  "description": "Nail Content Ekip Identity Profile pipeline configuration.",
+  "enabled": true,
+  "artifact": "identity-profile",
+  "steps": [
+    {
+      "stepId": "build-identity-profile",
+      "providerRoute": "cloudflare-ai-gateway:openai/gpt-image-2"
+    }
+  ],
+  "approvalPolicy": {
+    "realCreatorSelfieSetsRequireApprovalUntilProductionPolicyExists": true,
+    "newProviderForIdentityDataRequiresApproval": true
+  }
+}

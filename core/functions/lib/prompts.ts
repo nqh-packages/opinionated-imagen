@@ -35,6 +35,27 @@ CRITICAL RULES:
 
 Format as a single paragraph. Use precise photographer terminology.`;
 
+export const STYLE_EXTRACTION_PROMPT = `You are a senior photo editor extracting the reusable visual taste from a set of style reference photos.
+
+These images are NOT identity truth. Do not describe the people as subjects to preserve. Extract the aesthetic, story structure, composition behavior, light, color, camera feeling, and editorial choices that should transfer to future photos.
+
+Describe:
+1. LIGHTING: source direction, softness, contrast, practical lights, shadows
+2. COLOR: palette, white balance, saturation, color separation, skin rendering
+3. CAMERA: lens feeling, distance, focal length impression, depth of field, motion blur
+4. COMPOSITION: crop behavior, subject placement, negative space, perspective, layering
+5. STORY: what kind of moment the image feels like, candid vs posed, commercial vs personal
+6. TEXTURE: grain, sharpness, noise, imperfections, phone vs mirrorless feeling
+7. TRANSFER RULES: what must carry into new images and what should not be copied literally
+
+CRITICAL RULES:
+- Extract vibe, composition, story, color, lens, and mood.
+- Do not preserve the pose or framing of the user's own utility photos unless asked.
+- Do not copy a reference person's identity, brand, logo, or exact scene.
+- Prefer flexible direction that can adapt to weak or non-ready uploaded photos.
+
+Format as one compact paragraph plus a short "transfer rules" sentence.`;
+
 /**
  * Build the reference sheet prompt from a gemma-4 identity description.
  * The identity description is embedded directly as the "Person" specification.
@@ -58,4 +79,61 @@ Style requirements:
 - Landscape composition, all three views fit side by side
 
 Identity lock: Do NOT change this person's face, facial features, skin tone, bone structure, eye shape, nose, lips, or hair between angles. Preserve exact likeness across all three views.`;
+}
+
+export interface ContactSheetPromptInput {
+  identityDescription: string;
+  styleDescription: string;
+  presetName: string;
+  presetDescription: string;
+  baseScene: string;
+  creatorPrompt?: string;
+  variationCount: number;
+  variantMode:
+    | "balanced-editorial"
+    | "identity-safe-editorial"
+    | "style-forward-editorial";
+}
+
+export function buildContactSheetPrompt(
+  input: ContactSheetPromptInput,
+): string {
+  const variantDirection = {
+    "balanced-editorial":
+      "Balance identity preservation and style transfer. Keep the person recognisable while redesigning pose, composition, light, and story from the style profile.",
+    "identity-safe-editorial":
+      "Prioritize face and body likeness. Make composition and style editorial, but never trade away identity accuracy.",
+    "style-forward-editorial":
+      "Push the reference style harder through color, composition, mood, and storytelling. Keep identity recognizable but do not preserve the uploaded photo posing.",
+  }[input.variantMode];
+
+  return `Create one photorealistic contact sheet containing ${input.variationCount} distinct editorial variations of the same Creator.
+
+Identity Profile:
+${input.identityDescription}
+
+Style Profile:
+${input.styleDescription}
+
+Preset:
+${input.presetName} — ${input.presetDescription}
+
+Scene:
+${input.baseScene}
+
+Creator Prompt:
+${input.creatorPrompt?.trim() || "No extra prompt."}
+
+Creative Control:
+${variantDirection}
+
+Contact sheet requirements:
+- Output as a single composed image grid, not separate files.
+- Every variation must show the same Creator, with consistent face, skin tone, body type, and hair.
+- Do not preserve the pose, framing, or bad lighting from utility upload photos.
+- Transfer vibe, color, composition, lens feeling, mood, and story from the Style Profile.
+- Photorealistic by default. Like an iPhone or mirrorless camera photo, not AI art.
+- Natural imperfections are required: pores, flyaways, uneven light, real skin texture.
+- No text overlays, logos, watermarks, fake UI, captions, or borders.
+- Avoid stock posing. Make each variation feel like a real moment someone could have taken.`;
 }

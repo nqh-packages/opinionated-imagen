@@ -98,8 +98,21 @@ file_types = ["ALL"]
 type = "literal"
 path = "."
 
+[plugins.definitions.ripgrep.drivers.pipeline-workspace]
+script = "/opt/homebrew/bin/node core/tools/pipeline-workspace.mjs check --sarif --output ${tmpfile}"
+success_codes = [0]
+output = "tmpfile"
+output_format = "sarif"
+batch = true
+cache_results = false
+file_types = ["ALL"]
+
+[plugins.definitions.ripgrep.drivers.pipeline-workspace.target]
+type = "literal"
+path = "."
+
 [[plugin]]
 name = "ripgrep"
-drivers = ["product-workspace"]
+drivers = ["product-workspace", "pipeline-workspace"]
 mode = "block"
 triggers = ["manual", "agent", "pre-commit", "pre-push", "build"]

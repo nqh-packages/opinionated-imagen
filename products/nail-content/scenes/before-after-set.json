@@ -1,0 +1,14 @@
+{
+  "id": "before-after-set",
+  "name": "Before/After Set",
+  "description": "Side-by-side transformation content for client repairs, fills, extensions, and redesigns",
+  "baseScene": "A nail transformation presented as a clean before/after content set. The before frame stays honest and readable; the after frame highlights shape, shine, color, and finish. The layout feels premium but does not exaggerate the result or hide the real client hand.",
+  "tags": ["before-after", "transformation"],
+  "compositionPlan": [
+    { "type": "Before and after pair", "ratio": 3 },
+    { "type": "After hero close-up", "ratio": 2 },
+    { "type": "Texture and shine detail", "ratio": 2 },
+    { "type": "Booking promo crop", "ratio": 1 }
+  ],
+  "requiresProductImage": true
+}

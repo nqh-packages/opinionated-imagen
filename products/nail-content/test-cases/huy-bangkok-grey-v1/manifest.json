@@ -1,0 +1,103 @@
+{
+  "schemaVersion": 1,
+  "id": "huy-bangkok-grey-v1",
+  "productId": "nail-content",
+  "description": "Real-life test case for turning non-ready Bangkok source photos into a Grey-style editorial Contact Sheet.",
+  "sourceIntent": {
+    "userUploadedPurpose": "identity-raw-material",
+    "styleSourcePurpose": "taste-composition-storytelling-reference",
+    "targetOutcome": "Generate a Contact Sheet that preserves Huy's identity while transferring the style-source vibe and inventing stronger editorial composition, story, color, and detail."
+  },
+  "inputs": {
+    "userUploaded": [
+      "inputs/user-uploaded/001-user-uploaded-bangkok.HEIC",
+      "inputs/user-uploaded/002-user-uploaded-bangkok.HEIC",
+      "inputs/user-uploaded/003-user-uploaded-bangkok.HEIC",
+      "inputs/user-uploaded/004-user-uploaded-bangkok.HEIC",
+      "inputs/user-uploaded/005-user-uploaded-bangkok.HEIC"
+    ],
+    "styleSource": [
+      "inputs/style-source/001-style-reference.jpeg",
+      "inputs/style-source/002-style-reference.jpeg",
+      "inputs/style-source/003-style-reference.jpeg",
+      "inputs/style-source/004-style-reference.jpeg"
+    ],
+    "screenshots": ["inputs/screenshots/001-source-post.png"],
+    "sourceUrl": "source-url.webloc"
+  },
+  "creativeControlAxes": {
+    "identityLock": {
+      "description": "How strongly the output must preserve the Creator's face, body structure, age, skin tone, and recognizable identity.",
+      "scale": ["medium", "high", "strict"],
+      "default": "high"
+    },
+    "styleTransferStrength": {
+      "description": "How strongly the output borrows color, lens, lighting, finish, atmosphere, and taste from the style-source photos.",
+      "scale": ["medium", "high", "very-high"],
+      "default": "high"
+    },
+    "compositionInvention": {
+      "description": "How much the model may invent pose, framing, camera angle, set blocking, and visual hierarchy instead of preserving the uploaded photo composition.",
+      "scale": ["medium", "high", "very-high"],
+      "default": "high"
+    },
+    "storyInvention": {
+      "description": "How much the model may invent an editorial moment or implied story instead of copying a plain source-photo situation.",
+      "scale": ["low", "medium", "high"],
+      "default": "medium"
+    },
+    "sourcePhotoDependence": {
+      "description": "How much the final result should resemble the uploaded photos beyond identity.",
+      "scale": ["low", "medium", "high"],
+      "default": "low"
+    }
+  },
+  "variantMatrix": [
+    {
+      "id": "balanced-editorial",
+      "description": "Default reusable product behavior: preserve identity, transfer style strongly, invent better composition and a moderate story.",
+      "axes": {
+        "identityLock": "high",
+        "styleTransferStrength": "high",
+        "compositionInvention": "high",
+        "storyInvention": "medium",
+        "sourcePhotoDependence": "low"
+      }
+    },
+    {
+      "id": "identity-safe-editorial",
+      "description": "Conservative identity preservation with strong but less risky composition invention.",
+      "axes": {
+        "identityLock": "strict",
+        "styleTransferStrength": "high",
+        "compositionInvention": "medium",
+        "storyInvention": "medium",
+        "sourcePhotoDependence": "low"
+      }
+    },
+    {
+      "id": "style-forward-editorial",
+      "description": "More aggressive transfer from the style reference while preserving recognizable identity.",
+      "axes": {
+        "identityLock": "high",
+        "styleTransferStrength": "very-high",
+        "compositionInvention": "very-high",
+        "storyInvention": "high",
+        "sourcePhotoDependence": "low"
+      }
+    }
+  ],
+  "versioningPolicy": {
+    "profiles": "append-only versioned files under profiles/",
+    "intentions": "append-only versioned files under intentions/",
+    "variants": "append-only variant folders under variants/",
+    "evaluations": "append-only versioned files under evaluations/",
+    "outputs": "saved under the variant and run that produced them"
+  },
+  "approvalPolicy": {
+    "realIdentityData": true,
+    "newProviderForIdentityData": true,
+    "liveProviderSpend": true,
+    "cloudflareDeploy": true
+  }
+}

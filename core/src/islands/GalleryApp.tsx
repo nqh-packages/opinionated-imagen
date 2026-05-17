@@ -1,40 +1,68 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from "react";
 
-interface Shot {
+interface ContactSheet {
   id: string;
-  url: string;
   packId: string;
+  presetId: string;
+  status: string;
+  imageUrl: string | null;
   createdAt: string;
 }
 
 export default function GalleryApp() {
-  const [shots, setShots] = useState<Shot[]>([]);
+  const [contactSheets, setContactSheets] = useState<ContactSheet[]>([]);
   const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
-    // Placeholder: would fetch from /api/gallery
-    const timer = setTimeout(() => {
-      setShots([
-        { id: '1', url: 'https://placehold.co/400x500?text=Shot+1', packId: 'pack-1', createdAt: new Date().toISOString() },
-        { id: '2', url: 'https://placehold.co/400x500?text=Shot+2', packId: 'pack-1', createdAt: new Date().toISOString() },
-      ]);
-      setLoading(false);
-    }, 600);
-    return () => clearTimeout(timer);
+    fetch("/api/gallery", { credentials: "include" })
+      .then((res) => {
+        if (res.status === 401) {
+          throw new Error("Sign in to see your Contact Sheets.");
+        }
+        if (!res.ok) throw new Error(`Could not load Gallery (${res.status})`);
+        return res.json() as Promise<{ contactSheets: ContactSheet[] }>;
+      })
+      .then((data) => setContactSheets(data.contactSheets))
+      .catch((err: Error) => setMessage(err.message))
+      .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <p className="text-sm text-muted-foreground">Loading your shots...</p>;
-  if (shots.length === 0) return <p className="text-sm text-muted-foreground">No saved shots yet.</p>;
+  if (loading)
+    return (
+      <p className="text-sm text-muted-foreground">Loading Contact Sheets...</p>
+    );
+  if (message) return <p className="text-sm text-destructive">{message}</p>;
+  if (contactSheets.length === 0)
+    return (
+      <p className="text-sm text-muted-foreground">No Contact Sheets yet.</p>
+    );
 
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {shots.map((shot) => (
-        <div key={shot.id} className="group relative overflow-hidden rounded-lg border border-border">
-          <img src={shot.url} alt="Saved shot" className="aspect-[4/5] w-full object-cover" />
-          <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/60 to-transparent p-4 opacity-0 transition-opacity group-hover:opacity-100">
-            <button className="text-xs font-medium text-white hover:underline">Remix</button>
+      {contactSheets.map((sheet) => (
+        <article
+          key={sheet.id}
+          className="overflow-hidden rounded-lg border border-border bg-card"
+        >
+          {sheet.imageUrl ? (
+            <img
+              src={sheet.imageUrl}
+              alt="Generated Contact Sheet"
+              className="aspect-[3/2] w-full object-cover"
+            />
+          ) : (
+            <div className="flex aspect-[3/2] items-center justify-center bg-muted text-sm text-muted-foreground">
+              {sheet.status}
+            </div>
+          )}
+          <div className="space-y-1 p-3">
+            <p className="text-sm font-medium">{sheet.presetId}</p>
+            <p className="text-xs text-muted-foreground">
+              {new Date(sheet.createdAt).toLocaleString()}
+            </p>
           </div>
-        </div>
+        </article>
       ))}
     </div>
   );

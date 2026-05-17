@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "id": "generate-variations",
+  "pipelineTypes": ["contact-sheet", "evaluation"],
+  "description": "Generate multiple Variations from an Intention and optional anchor image.",
+  "inputs": [
+    "intention",
+    "identity-profile",
+    "style-profile",
+    "anchor-variation"
+  ],
+  "outputs": ["variations"],
+  "providerRouteRequired": true,
+  "approvalRequiredForRealIdentityData": true
+}

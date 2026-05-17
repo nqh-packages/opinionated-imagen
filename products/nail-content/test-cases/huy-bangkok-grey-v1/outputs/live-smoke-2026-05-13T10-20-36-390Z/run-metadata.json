@@ -1,0 +1,78 @@
+{
+  "baseUrl": "https://opinionated-imagen.nqh.workers.dev",
+  "userId": "5fc4c866-63a2-41d7-a553-c192f0475bcd",
+  "sessionToken": "[redacted-live-session-token]",
+  "packId": "c496720c-d3b7-4360-8a7a-e2dcfb8b4051",
+  "contactSheet": {
+    "id": "a21cb31e-0c53-4429-89f3-a19d27f09e2c",
+    "packId": "c496720c-d3b7-4360-8a7a-e2dcfb8b4051",
+    "status": "ready",
+    "artifactR2Key": "contact-sheets/5fc4c866-63a2-41d7-a553-c192f0475bcd/c496720c-d3b7-4360-8a7a-e2dcfb8b4051/contact-sheet.png",
+    "imageUrl": "/api/gallery/artifact?key=contact-sheets%2F5fc4c866-63a2-41d7-a553-c192f0475bcd%2Fc496720c-d3b7-4360-8a7a-e2dcfb8b4051%2Fcontact-sheet.png",
+    "metadata": {
+      "providerRoute": "cloudflare-ai-gateway:gpt-image-2",
+      "gatewayId": "opinionated-imagen-nail",
+      "variationCount": 8,
+      "variantMode": "style-forward-editorial"
+    },
+    "createdAt": "2026-05-13 10:20:55",
+    "updatedAt": "2026-05-13 10:22:02"
+  },
+  "sourceInputs": {
+    "selfieInputs": [
+      "/Volumes/BIWIN/CODES/opinionated-imagen/products/nail-content/test-cases/huy-bangkok-grey-v1/inputs/user-uploaded/001-user-uploaded-bangkok.HEIC",
+      "/Volumes/BIWIN/CODES/opinionated-imagen/products/nail-content/test-cases/huy-bangkok-grey-v1/inputs/user-uploaded/002-user-uploaded-bangkok.HEIC",
+      "/Volumes/BIWIN/CODES/opinionated-imagen/products/nail-content/test-cases/huy-bangkok-grey-v1/inputs/user-uploaded/003-user-uploaded-bangkok.HEIC"
+    ],
+    "styleInputs": [
+      "/Volumes/BIWIN/CODES/opinionated-imagen/products/nail-content/test-cases/huy-bangkok-grey-v1/inputs/style-source/001-style-reference.jpeg",
+      "/Volumes/BIWIN/CODES/opinionated-imagen/products/nail-content/test-cases/huy-bangkok-grey-v1/inputs/style-source/002-style-reference.jpeg",
+      "/Volumes/BIWIN/CODES/opinionated-imagen/products/nail-content/test-cases/huy-bangkok-grey-v1/inputs/style-source/003-style-reference.jpeg"
+    ]
+  },
+  "completedUploads": [
+    {
+      "uploadType": "selfie",
+      "r2Key": "uploads/[redacted-live-session-token]/selfie/1778667639283-199555.jpg",
+      "filename": "selfie-1.jpg",
+      "contentType": "image/jpeg",
+      "sizeBytes": 238714
+    },
+    {
+      "uploadType": "selfie",
+      "r2Key": "uploads/[redacted-live-session-token]/selfie/1778667639283-f0ea14.jpg",
+      "filename": "selfie-2.jpg",
+      "contentType": "image/jpeg",
+      "sizeBytes": 121190
+    },
+    {
+      "uploadType": "selfie",
+      "r2Key": "uploads/[redacted-live-session-token]/selfie/1778667639283-49707e.jpg",
+      "filename": "selfie-3.jpg",
+      "contentType": "image/jpeg",
+      "sizeBytes": 289440
+    },
+    {
+      "uploadType": "style-reference",
+      "r2Key": "uploads/[redacted-live-session-token]/style-reference/1778667639283-875a56.jpeg",
+      "filename": "style-reference-1.jpeg",
+      "contentType": "image/jpeg",
+      "sizeBytes": 714913
+    },
+    {
+      "uploadType": "style-reference",
+      "r2Key": "uploads/[redacted-live-session-token]/style-reference/1778667639283-865165.jpeg",
+      "filename": "style-reference-2.jpeg",
+      "contentType": "image/jpeg",
+      "sizeBytes": 574583
+    },
+    {
+      "uploadType": "style-reference",
+      "r2Key": "uploads/[redacted-live-session-token]/style-reference/1778667639283-f66e59.jpeg",
+      "filename": "style-reference-3.jpeg",
+      "contentType": "image/jpeg",
+      "sizeBytes": 849780
+    }
+  ],
+  "createdAt": "2026-05-13T10:22:03.508Z"
+}

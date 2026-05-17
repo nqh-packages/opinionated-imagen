@@ -1,0 +1,14 @@
+{
+  "id": "salon-station-carousel",
+  "name": "Salon Station Carousel",
+  "description": "A cohesive carousel from chair-side work, polish details, tools, and final result",
+  "baseScene": "A nail salon station captured as a polished Instagram carousel: clean table surface, tools arranged with intention, polish bottles, hands in progress, and the final manicure result. The scene feels like a real working salon, edited with enough restraint to stay trustworthy.",
+  "tags": ["carousel", "salon"],
+  "compositionPlan": [
+    { "type": "Carousel cover", "ratio": 2 },
+    { "type": "Work-in-progress frame", "ratio": 2 },
+    { "type": "Final result frame", "ratio": 2 },
+    { "type": "Tool and polish detail", "ratio": 2 }
+  ],
+  "requiresProductImage": true
+}
