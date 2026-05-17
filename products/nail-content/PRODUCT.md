@@ -18,6 +18,12 @@ The positioning: this is not an AI product. It is a premium content service for 
 
 She is not a prompt engineer or a photo editor.
 
+## First Test Customer
+
+**The Claw.** A Budapest custom nail studio from BookNow. Use it as the first real customer fixture, not as a separate product. The test case proves Nail Content Ekip can take a reference-led salon brand, real nail work photos, and booking-oriented visual language, then produce a clear Brief and a post-ready Edit.
+
+The Claw's expected direction: black grit, lacquer-red action marks, torn-paper editorial framing, sharp tactile nail proof, and custom sets built from a client reference or mood.
+
 ## Core Flow
 
 ### 1. Onboard — Step 1: Work Source

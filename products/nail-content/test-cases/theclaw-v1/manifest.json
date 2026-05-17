@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "id": "theclaw-v1",
+  "productId": "nail-content",
+  "description": "First customer fixture for Nail Content Ekip: The Claw custom nail studio in Budapest.",
+  "customer": {
+    "name": "The Claw",
+    "source": "BookNow The Claw public site and design notes",
+    "market": "Custom nail studio in Budapest",
+    "positioning": "Reference-led custom nails: bring the image or mood, then shape, finish, color, and detail become a booked set.",
+    "sourceLocale": "en"
+  },
+  "sourceIntent": {
+    "userUploadedPurpose": "salon-work-raw-material",
+    "styleSourcePurpose": "brand-taste-composition-storytelling-reference",
+    "targetOutcome": "Generate a Drop that turns real The Claw work photos into a controlled editorial Contact Sheet while preserving nail shape, finish, color truth, and reference-led brand attitude."
+  },
+  "inputs": {
+    "userUploaded": [
+      "inputs/user-uploaded/001-theclaw-work-photo.placeholder",
+      "inputs/user-uploaded/002-theclaw-work-photo.placeholder",
+      "inputs/user-uploaded/003-theclaw-work-photo.placeholder"
+    ],
+    "styleSource": [
+      "inputs/style-source/001-theclaw-brand-board.placeholder",
+      "inputs/style-source/002-theclaw-reference-led-site.placeholder",
+      "inputs/style-source/003-theclaw-hero-hands.placeholder"
+    ],
+    "screenshots": ["inputs/screenshots/001-theclaw-public-site.placeholder"],
+    "sourceUrl": "source-url.webloc"
+  },
+  "productLanguage": {
+    "workSet": "The Claw real client nail photos",
+    "vibe": "graffiti-couture, sharp, tactile, proof-led",
+    "scene": "Client Result Close-Up",
+    "brief": "Reference-led custom nails in a black grit editorial world. The nails stay product-true: sharp shape, high finish, visible texture, believable skin, and enough surrounding attitude to feel like The Claw.",
+    "edit": "A post-ready Drop with close proof, angled hand poses, detail crops, and one booking-friendly vertical frame."
+  },
+  "creativeControlAxes": {
+    "nailTruth": {
+      "description": "How strongly the output must preserve nail shape, length, finish, color, and client-hand believability from the Work Set.",
+      "scale": ["medium", "high", "strict"],
+      "default": "strict"
+    },
+    "brandTransferStrength": {
+      "description": "How strongly the output borrows The Claw's black grit, lacquer-red, torn-paper, tactile, reference-led visual language.",
+      "scale": ["medium", "high", "very-high"],
+      "default": "high"
+    },
+    "compositionInvention": {
+      "description": "How much the model may improve hand pose, crop, camera angle, and editorial framing instead of preserving the uploaded photo composition.",
+      "scale": ["medium", "high", "very-high"],
+      "default": "high"
+    },
+    "bookingUsefulness": {
+      "description": "How directly the final Drop helps a prospective client understand the set, save the reference, or book a similar service.",
+      "scale": ["low", "medium", "high"],
+      "default": "high"
+    },
+    "sourcePhotoDependence": {
+      "description": "How much the final result should resemble the uploaded photos beyond the nail work truth.",
+      "scale": ["low", "medium", "high"],
+      "default": "medium"
+    }
+  },
+  "variantMatrix": [
+    {
+      "id": "proof-led-editorial",
+      "description": "Default The Claw behavior: preserve nail truth strictly, transfer brand strongly, and invent stronger editorial framing for booking-ready proof.",
+      "axes": {
+        "nailTruth": "strict",
+        "brandTransferStrength": "high",
+        "compositionInvention": "high",
+        "bookingUsefulness": "high",
+        "sourcePhotoDependence": "medium"
+      }
+    },
+    {
+      "id": "close-proof-safe",
+      "description": "Conservative variant for result accuracy: strongest preservation of nail and hand details with less aggressive scene invention.",
+      "axes": {
+        "nailTruth": "strict",
+        "brandTransferStrength": "medium",
+        "compositionInvention": "medium",
+        "bookingUsefulness": "high",
+        "sourcePhotoDependence": "high"
+      }
+    },
+    {
+      "id": "brand-forward-drop",
+      "description": "More authored social content: The Claw visual language gets louder while nail finish and hand believability remain hard gates.",
+      "axes": {
+        "nailTruth": "high",
+        "brandTransferStrength": "very-high",
+        "compositionInvention": "very-high",
+        "bookingUsefulness": "medium",
+        "sourcePhotoDependence": "low"
+      }
+    }
+  ],
+  "acceptanceGates": [
+    "Nails keep believable shape, color, finish, and texture.",
+    "Hands look real, not plastic, airbrushed, or warped.",
+    "The image reads as The Claw: black grit, sharp tactile attitude, reference-led custom work.",
+    "The Drop can support booking confidence, not just aesthetic browsing.",
+    "No output looks like generic stock nail salon content."
+  ],
+  "versioningPolicy": {
+    "profiles": "append-only versioned files under profiles/",
+    "intentions": "append-only versioned files under intentions/",
+    "variants": "append-only variant folders under variants/",
+    "evaluations": "append-only versioned files under evaluations/",
+    "outputs": "saved under the variant and run that produced them"
+  },
+  "approvalPolicy": {
+    "realIdentityData": false,
+    "realClientHandPhotos": true,
+    "newProviderForRealClientPhotos": true,
+    "liveProviderSpend": true,
+    "booknowLiveDataImport": true,
+    "cloudflareDeploy": true
+  }
+}

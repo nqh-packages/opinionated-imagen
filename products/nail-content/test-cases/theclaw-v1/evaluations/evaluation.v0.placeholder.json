@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "status": "placeholder",
+  "customer": "The Claw",
+  "description": "Evaluation results for The Claw generated variants will be saved here with scores, hard gates, provider routes, costs, and notes.",
+  "hardGates": [
+    "nail_truth",
+    "hand_believability",
+    "theclaw_brand_fit",
+    "booking_usefulness",
+    "non_generic_output"
+  ],
+  "weightedScores": {
+    "nailTruth": 30,
+    "photorealism": 20,
+    "theclawBrandFit": 15,
+    "intentionAdherence": 15,
+    "artifactDefects": 10,
+    "compositionVariety": 5,
+    "cost": 3,
+    "latency": 2
+  }
+}

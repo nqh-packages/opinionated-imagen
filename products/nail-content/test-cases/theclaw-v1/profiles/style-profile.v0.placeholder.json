@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "status": "placeholder",
+  "customer": "The Claw",
+  "description": "Style Profile extraction output for The Claw will be saved here as an append-only versioned artifact.",
+  "sourceInputs": [
+    "../inputs/style-source/001-theclaw-brand-board.placeholder",
+    "../inputs/style-source/002-theclaw-reference-led-site.placeholder",
+    "../inputs/style-source/003-theclaw-hero-hands.placeholder"
+  ],
+  "expectedStyleSignals": [
+    "black grit",
+    "lacquer-red action marks",
+    "torn-paper editorial framing",
+    "sharp tactile nail proof",
+    "reference-led custom design language"
+  ]
+}

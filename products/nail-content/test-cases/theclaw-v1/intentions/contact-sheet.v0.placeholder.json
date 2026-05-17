@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "status": "placeholder",
+  "customer": "The Claw",
+  "sceneId": "client-result-closeup",
+  "brief": "Reference-led custom nails in a black grit editorial world. Preserve the real nail shape, finish, color, and believable client hand texture. Improve crop, light, and hand pose so the set feels authored by The Claw, not cleaned by a generic AI tool.",
+  "compositionPlan": [
+    "3 hero close-ups with nail finish and shape as the clear proof",
+    "2 angled hand poses with sharper editorial framing",
+    "2 detail crops for texture, color, and shine",
+    "1 vertical booking-friendly story frame"
+  ],
+  "hardConstraints": [
+    "Do not change the nail art into a different set.",
+    "Do not smooth skin into plastic texture.",
+    "Do not add impossible finger anatomy.",
+    "Do not make the salon brand feel soft, beige, luxury-spa, or generic."
+  ]
+}
