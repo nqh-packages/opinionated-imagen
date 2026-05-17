@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "id": "ig-content.evaluation",
+  "id": "nail-content.evaluation",
   "pipelineType": "evaluation",
-  "description": "IG Content provider-route evaluation pipeline configuration.",
+  "description": "Nail Content Ekip provider-route evaluation pipeline configuration.",
   "enabled": true,
   "fixturePolicy": "synthetic-or-approved-test-fixtures-only",
   "candidateProviderRoutes": [

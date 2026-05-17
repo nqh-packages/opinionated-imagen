@@ -8,9 +8,9 @@ Read [AGENTS.md](AGENTS.md) for how to build a product workspace. Read [CONTEXT.
 
 ## What It Makes
 
-Each product is a web product where creators upload their photos, teach the system their look and taste, and get back curated content packs — no prompt engineering, one-turn confirmation, photorealistic output.
+Each product is a web product where a narrow market uploads real photos, teaches the system its visual taste, and gets back curated content packs — no prompt engineering, one-turn confirmation, photorealistic output.
 
-Right now there's one product: **IG Content** for individual creators like Lily. See `products/ig-content/PRODUCT.md`.
+Right now there is one product: **Nail Content Ekip** for nail salons and independent nail techs. See `products/nail-content/PRODUCT.md`.
 
 ## Not in Scope
 

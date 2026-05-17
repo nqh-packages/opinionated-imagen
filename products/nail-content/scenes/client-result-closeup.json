@@ -1,0 +1,14 @@
+{
+  "id": "client-result-closeup",
+  "name": "Client Result Close-Up",
+  "description": "Clean nail result photos with believable hands, accurate polish, and salon-ready framing",
+  "baseScene": "A finished manicure photographed on natural hands under clean salon light. The nails are the hero: accurate polish color, visible shape, believable skin texture, tidy cuticles, and a calm background that does not distract from the client result.",
+  "tags": ["result", "close-up"],
+  "compositionPlan": [
+    { "type": "Hero close-up", "ratio": 3 },
+    { "type": "Angled hand pose", "ratio": 2 },
+    { "type": "Polish detail crop", "ratio": 2 },
+    { "type": "Story-ready vertical frame", "ratio": 1 }
+  ],
+  "requiresProductImage": true
+}

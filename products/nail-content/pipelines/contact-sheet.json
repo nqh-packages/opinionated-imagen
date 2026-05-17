@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "id": "ig-content.contact-sheet",
+  "id": "nail-content.contact-sheet",
   "pipelineType": "contact-sheet",
-  "description": "IG Content production Contact Sheet pipeline configuration.",
+  "description": "Nail Content Ekip production Contact Sheet pipeline configuration.",
   "enabled": true,
   "steps": [
     {

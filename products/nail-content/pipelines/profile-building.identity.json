@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "id": "ig-content.profile-building.identity",
+  "id": "nail-content.profile-building.identity",
   "pipelineType": "profile-building",
-  "description": "IG Content Identity Profile pipeline configuration.",
+  "description": "Nail Content Ekip Identity Profile pipeline configuration.",
   "enabled": true,
   "artifact": "identity-profile",
   "steps": [

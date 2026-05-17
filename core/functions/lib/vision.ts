@@ -189,7 +189,7 @@ async function extractWithOpenAiVision(
   prompt: string,
 ): Promise<string> {
   const gatewayName = getProductWorkspace(
-    env.PRODUCT_ID ?? env.NICHE ?? "ig-content",
+    env.PRODUCT_ID ?? env.NICHE ?? "nail-content",
   ).manifest.gatewayId;
   const content = [
     { type: "text", text: prompt },
@@ -246,7 +246,7 @@ export async function generateReferenceSheet(
 
   try {
     const gatewayName = getProductWorkspace(
-      env.PRODUCT_ID ?? env.NICHE ?? "ig-content",
+      env.PRODUCT_ID ?? env.NICHE ?? "nail-content",
     ).manifest.gatewayId;
     const response = await env.AI.run(
       "openai/gpt-image-2",

@@ -46,8 +46,8 @@ scenes/
 ```bash
 pnpm product:validate
 pnpm product:compile
-pnpm product:validate ig-content
-pnpm product:compile ig-content
+pnpm product:validate nail-content
+pnpm product:compile nail-content
 ```
 
 Run validation after editing `product.json`, `CONTEXT.md`, `brand/`, or `scenes/`. Run compile before Worker runtime verification.

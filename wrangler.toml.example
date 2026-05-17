@@ -4,7 +4,7 @@ compatibility_date = "2025-04-01"
 compatibility_flags = ["nodejs_compat"]
 
 [vars]
-PRODUCT_ID = "ig-content"
+PRODUCT_ID = "nail-content"
 
 # D1 database binding
 [[d1_databases]]

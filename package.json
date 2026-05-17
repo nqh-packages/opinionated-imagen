@@ -19,7 +19,7 @@
     "product:check": "node core/tools/product-workspace.mjs check && pnpm pipeline:check",
     "pipeline:validate": "node core/tools/pipeline-workspace.mjs validate",
     "pipeline:check": "node core/tools/pipeline-workspace.mjs check",
-    "deploy:ig": "PRODUCT_ID=ig-content pnpm build && wrangler deploy",
+    "deploy:nail": "PRODUCT_ID=nail-content pnpm build && wrangler deploy",
     "deploy:headshots": "PRODUCT_ID=headshots pnpm build && wrangler deploy",
     "deploy:dating": "PRODUCT_ID=dating pnpm build && wrangler deploy"
   },

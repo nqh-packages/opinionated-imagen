@@ -34,7 +34,7 @@ export async function generateContactSheet(
   request: ContactSheetRequest,
 ): Promise<ContactSheetResult> {
   const gatewayName = getProductWorkspace(
-    env.PRODUCT_ID ?? env.NICHE ?? "ig-content",
+    env.PRODUCT_ID ?? env.NICHE ?? "nail-content",
   ).manifest.gatewayId;
   const prompt = buildContactSheetPrompt(request.intention);
 

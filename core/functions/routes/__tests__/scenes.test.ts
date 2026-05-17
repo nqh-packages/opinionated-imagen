@@ -17,13 +17,13 @@ function createApp(productId?: string) {
 
 describe('GET /api/scenes', () => {
   it('returns scenes from the active Product Workspace', async () => {
-    const { app, env } = createApp('ig-content');
+    const { app, env } = createApp('nail-content');
 
     const res = await app.request('/api/scenes', {}, env);
     const body = await res.json() as { scenes: { id: string; shotCount: number }[] };
 
     expect(res.status).toBe(200);
-    expect(body.scenes.some((scene) => scene.id === 'cafe-aesthetic' && scene.shotCount === 8)).toBe(true);
+    expect(body.scenes.some((scene) => scene.id === 'client-result-closeup' && scene.shotCount === 8)).toBe(true);
   });
 
   it('returns structured diagnostics when the active Product Workspace is missing', async () => {

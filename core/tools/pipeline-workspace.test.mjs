@@ -18,7 +18,7 @@ function createWorkspace() {
   );
   const corePipelinesDir = join(root, "core", "pipelines");
   const stepsDir = join(corePipelinesDir, "steps");
-  const productDir = join(root, "products", "ig-content");
+  const productDir = join(root, "products", "nail-content");
   const productPipelinesDir = join(productDir, "pipelines");
   mkdirSync(stepsDir, { recursive: true });
   mkdirSync(productPipelinesDir, { recursive: true });
@@ -72,7 +72,7 @@ function createWorkspace() {
 
   writeJson(join(productPipelinesDir, "contact-sheet.json"), {
     schemaVersion: 1,
-    id: "ig-content.contact-sheet",
+    id: "nail-content.contact-sheet",
     pipelineType: "contact-sheet",
     description: "Contact Sheet pipeline.",
     enabled: true,
@@ -85,7 +85,7 @@ function createWorkspace() {
   });
   writeJson(join(productPipelinesDir, "evaluation.json"), {
     schemaVersion: 1,
-    id: "ig-content.evaluation",
+    id: "nail-content.evaluation",
     pipelineType: "evaluation",
     description: "Evaluation pipeline.",
     enabled: true,
@@ -117,7 +117,7 @@ describe("pipeline workspace validator", () => {
 
     expect(result.status, result.stderr || result.stdout).toBe(0);
     expect(result.stdout).toContain("event=pipeline_workspace_check status=ok");
-    expect(result.stdout).toContain("products=ig-content");
+    expect(result.stdout).toContain("products=nail-content");
   });
 
   it("blocks product workspaces without file-native pipeline configs", () => {
@@ -143,7 +143,7 @@ describe("pipeline workspace validator", () => {
     const pipelinePath = join(
       root,
       "products",
-      "ig-content",
+      "nail-content",
       "pipelines",
       "contact-sheet.json",
     );
@@ -163,7 +163,7 @@ describe("pipeline workspace validator", () => {
     const pipelinePath = join(
       root,
       "products",
-      "ig-content",
+      "nail-content",
       "pipelines",
       "contact-sheet.json",
     );
@@ -184,7 +184,7 @@ describe("pipeline workspace validator", () => {
     const pipelinePath = join(
       root,
       "products",
-      "ig-content",
+      "nail-content",
       "pipelines",
       "evaluation.json",
     );

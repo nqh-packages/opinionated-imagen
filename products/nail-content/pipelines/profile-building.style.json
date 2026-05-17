@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "id": "ig-content.profile-building.style",
+  "id": "nail-content.profile-building.style",
   "pipelineType": "profile-building",
-  "description": "IG Content Style Profile pipeline configuration.",
+  "description": "Nail Content Ekip Style Profile pipeline configuration.",
   "enabled": true,
   "artifact": "style-profile",
   "steps": [

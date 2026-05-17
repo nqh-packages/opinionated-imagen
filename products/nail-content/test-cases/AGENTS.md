@@ -4,7 +4,7 @@
 
 ## Scope
 
-This folder owns versioned real-life test cases for IG Content.
+This folder owns versioned real-life test cases for Nail Content Ekip.
 
 ## Rules
 

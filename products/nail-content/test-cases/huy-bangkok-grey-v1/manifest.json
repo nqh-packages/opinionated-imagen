@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "huy-bangkok-grey-v1",
-  "productId": "ig-content",
+  "productId": "nail-content",
   "description": "Real-life test case for turning non-ready Bangkok source photos into a Grey-style editorial Contact Sheet.",
   "sourceIntent": {
     "userUploadedPurpose": "identity-raw-material",

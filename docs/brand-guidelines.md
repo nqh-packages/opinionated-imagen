@@ -8,7 +8,7 @@
 
 | Element | Value | Status |
 |---------|-------|--------|
-| Positioning | Your photos, elevated. | Locked |
+| Positioning | Salon photos, made postable. | Locked |
 | Voice | Editorial, warm, understated | Locked |
 | Primary Vocab | Scene, Drop, The Edit, The Brief | Locked |
 | Primary Color | `#1a1a1a` (near-black) | Provisional |
@@ -21,24 +21,24 @@
 ## 1. Positioning
 
 ### Mission
-Your photos, elevated. An invisible creative team that makes your social wall look like it came from a magazine.
+Salon photos, made postable. A personal content ekip that makes nail work look ready for Instagram before the salon posts it.
 
 ### Vision
-A world where every creator has the quality of a photo crew in their pocket — without the crew, the cost, or the Saturday afternoon shoot.
+A world where every nail salon has the quality of a content person in its pocket — without hiring a photographer, editor, or social media assistant.
 
 ### Value Proposition
 
-For Instagram creators who post weekly and want their feed to look editorial —
-Opinionated Imagen is a premium creative service
-that produces magazine-grade photo content from your existing photos.
+For nail salons and independent nail techs who post weekly and need their client work to look polished —
+Opinionated Imagen is a premium content service
+that produces salon-ready post content from real nail photos.
 Unlike PhotoAI (a toolbox of 30+ features that looks like AI),
-we do one thing: one scene, one brief, one edit — all magazine-quality, zero AI chrome.
+we do one thing: one salon scene, one brief, one edit — all post-ready, zero AI chrome.
 
 ### Positioning Statement
 
-Opinionated Imagen is the invisible creative team for individual creators
-who want their social feed to look like it came from a magazine
-because we understand your face, your taste, and your scene — then produce the edit.
+Opinionated Imagen is the personal content ekip for nail salons
+that need client-result photos, before/after sets, and salon carousels to look professional
+because we understand the nail work, the salon style, and the post format — then produce the edit.
 
 ---
 
@@ -55,7 +55,7 @@ because we understand your face, your taste, and your scene — then produce the
 | **Process** | Background generation pipeline | Generate, AI Generate, Render |
 | **Archive** | Saved outputs library | Gallery, Library, Saved Photos |
 | **Moodboard** | Photos the user uploads to teach aesthetic taste | Style References (internal) |
-| **Selfie Set** | Photos the user uploads to establish identity | Training Data, Uploads |
+| **Work Set** | Nail photos the salon uploads to establish service quality and common photo conditions | Training Data, Uploads |
 | **Monthly Access** | Subscription: 4 Drops/month, priority processing | Pro Plan, Premium, Subscription |
 | **Single Drop** | One-off purchase: 1 Drop, 8 shots | One-off Pack, Credits |
 
@@ -107,7 +107,7 @@ Before any user-facing copy ships, ask:
 | **Error** | Calm, helpful | "Something didn't process. Try this Scene again." |
 | **Payment** | Transactional, clean | "$10 · Single Drop. Processed via Stripe." |
 | **Email (magic link)** | Personal, brief | "Here's your link to continue." |
-| **Marketing landing** | Elevated, magazine | "Your photos, elevated." |
+| **Marketing landing** | Elevated, magazine | "Salon photos, made postable." |
 
 ### Forbidden Words
 
@@ -131,8 +131,8 @@ Never use in user-facing surfaces:
 | "AI is generating your photos" | "Processing your Drop..." |
 | "Prompt Preview" | "The Brief" |
 | "Generated Images" | "The Edit" |
-| "Training your model" | "Building your profile..." |
-| "AI Photo Tool" | "Your invisible creative team" |
+| "Training your model" | "Building your salon profile..." |
+| "AI Photo Tool" | "Your personal content ekip" |
 | "Magic Avatar" | "Your Edit" |
 | "Click Generate" | "Process Drop" |
 | "Upload complete" | "Ready to process" |
@@ -145,31 +145,31 @@ Never use in user-facing surfaces:
 
 ### Primary Message
 
-> Your photos, elevated.
+> Salon photos, made postable.
 
 ### Supporting Messages
 
 | Message | Audience Need | Proof Point |
 |---------|--------------|-------------|
-| One scene, fully produced. | "I don't want to think about parameters." | Pick a Scene → confirm The Brief → get The Edit. |
-| Your taste, learned. | "I want consistency, not randomness." | Upload your Moodboard → every Drop matches your aesthetic. |
-| Magazine-grade from the first pixel. | "I don't want AI-looking output." | Photorealistic standard: pores, flyaways, real light. |
-| No crew, no shoot, no wait. | "I don't have time for a photoshoot." | Upload existing photos → get new content in minutes. |
+| One salon scene, fully produced. | "I don't want to think about parameters." | Pick a Scene → confirm The Brief → get The Edit. |
+| Your salon style, learned. | "I want consistency, not randomness." | Upload your Moodboard → every Drop matches the salon aesthetic. |
+| Real nails, real hands, real light. | "I don't want fake-looking output." | Photorealistic standard: believable skin, accurate polish, natural light. |
+| No content hire, no shoot, no wait. | "I need posts from the work I already did." | Upload existing nail photos → get post-ready content in minutes. |
 
 ### Elevator Pitches
 
 **10-second:**
-> Your photos, elevated. Pick a scene, confirm the brief, get magazine-grade content.
+> Salon photos, made postable. Pick a scene, confirm the brief, get post-ready nail content.
 
 **30-second:**
-> Creators waste weekends on photoshoots. PhotoAI tools look synthetic. Opinionated Imagen is different: upload your photos, pick a scene, and get back an editorial contact sheet that looks like a crew produced it. One Drop. Eight shots. No AI chrome.
+> Nail salons do great work, then post rushed phone photos under harsh salon lighting. Opinionated Imagen is different: upload real nail photos, pick a scene, and get back a polished contact sheet that looks like a content person handled it. One Drop. Eight shots. No AI chrome.
 
 **60-second:**
-> Lily posts to Instagram weekly. She cares about her feed looking consistent but can't spend Saturday afternoon on shoots. PhotoAI gives her 30 features she'll never use and output that screams "AI."
+> Maya runs a nail studio and posts client work every week because bookings depend on what people see. Her nail work is strong, but the photos are inconsistent: harsh light, awkward hands, messy station backgrounds, no carousel rhythm.
 >
-> Opinionated Imagen does one thing: she uploads her photos, teaches us her taste, picks a Scene, confirms The Brief, and gets back The Edit — 8 magazine-grade variations of one scene. No prompt engineering. No tweaking sliders. One turn, one brief, one drop.
+> Opinionated Imagen does one thing: she uploads real nail photos, teaches us the salon style, picks a Scene, confirms The Brief, and gets back The Edit — 8 post-ready variations of one nail content scene. No prompt engineering. No tweaking sliders. One turn, one brief, one drop.
 >
-> Single Drop: $10. Monthly Access: $29 for 4 Drops. Your photos, elevated.
+> Single Drop: $10. Monthly Access: $29 for 4 Drops. Salon photos, made postable.
 
 ---
 
@@ -177,9 +177,9 @@ Never use in user-facing surfaces:
 
 | Audience | Pain Point | Key Message | CTA |
 |----------|------------|-------------|-----|
-| **Lily** (IG creator, weekly poster) | No time for shoots; feed inconsistent | "Your taste, learned. One Drop = one editorial scene." | "Try your first Drop" |
-| **Casual poster** (1-2x/month) | Wants quality, not commitment | "$10 per Drop. No subscription required." | "Drop in once" |
-| **Weekly poster** (habitual) | Needs reliable volume | "Monthly Access: 4 Drops, priority processing." | "Get Monthly Access" |
+| **Maya** (independent nail tech) | Great work, inconsistent photos | "Your salon style, learned. One Drop = one post-ready nail scene." | "Try your first Drop" |
+| **Small salon owner** | Needs weekly content without hiring a content person | "$10 per Drop. No subscription required." | "Drop in once" |
+| **Busy studio** | Needs reliable content volume | "Monthly Access: 4 Drops, priority processing." | "Get Monthly Access" |
 
 ---
 
@@ -251,7 +251,7 @@ Never use in user-facing surfaces:
 ### Imagery Style (Provisional)
 
 - **In-product:** Generated photos dominate. No UI elements over them except save/discard actions on hover.
-- **Marketing:** Real photography of creators in natural settings. Natural light. No studio flash. Skin texture visible. Slight film grain acceptable. The marketing photos should feel like the product's output.
+- **Marketing:** Real photography of nail work, hands, salon stations, polish bottles, and client-result moments. Natural or believable salon light. Skin texture visible. Polish color accurate. The marketing photos should feel like the product's output.
 - **No AI-generated imagery** in the product UI. Ever. If we need placeholder visuals, use real photography or solid color blocks.
 
 ---

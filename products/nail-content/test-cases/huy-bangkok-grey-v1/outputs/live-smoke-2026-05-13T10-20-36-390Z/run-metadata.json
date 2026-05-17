@@ -11,7 +11,7 @@
     "imageUrl": "/api/gallery/artifact?key=contact-sheets%2F5fc4c866-63a2-41d7-a553-c192f0475bcd%2Fc496720c-d3b7-4360-8a7a-e2dcfb8b4051%2Fcontact-sheet.png",
     "metadata": {
       "providerRoute": "cloudflare-ai-gateway:gpt-image-2",
-      "gatewayId": "opinionated-imagen-ig",
+      "gatewayId": "opinionated-imagen-nail",
       "variationCount": 8,
       "variantMode": "style-forward-editorial"
     },
@@ -20,14 +20,14 @@
   },
   "sourceInputs": {
     "selfieInputs": [
-      "/Volumes/BIWIN/CODES/opinionated-imagen/products/ig-content/test-cases/huy-bangkok-grey-v1/inputs/user-uploaded/001-user-uploaded-bangkok.HEIC",
-      "/Volumes/BIWIN/CODES/opinionated-imagen/products/ig-content/test-cases/huy-bangkok-grey-v1/inputs/user-uploaded/002-user-uploaded-bangkok.HEIC",
-      "/Volumes/BIWIN/CODES/opinionated-imagen/products/ig-content/test-cases/huy-bangkok-grey-v1/inputs/user-uploaded/003-user-uploaded-bangkok.HEIC"
+      "/Volumes/BIWIN/CODES/opinionated-imagen/products/nail-content/test-cases/huy-bangkok-grey-v1/inputs/user-uploaded/001-user-uploaded-bangkok.HEIC",
+      "/Volumes/BIWIN/CODES/opinionated-imagen/products/nail-content/test-cases/huy-bangkok-grey-v1/inputs/user-uploaded/002-user-uploaded-bangkok.HEIC",
+      "/Volumes/BIWIN/CODES/opinionated-imagen/products/nail-content/test-cases/huy-bangkok-grey-v1/inputs/user-uploaded/003-user-uploaded-bangkok.HEIC"
     ],
     "styleInputs": [
-      "/Volumes/BIWIN/CODES/opinionated-imagen/products/ig-content/test-cases/huy-bangkok-grey-v1/inputs/style-source/001-style-reference.jpeg",
-      "/Volumes/BIWIN/CODES/opinionated-imagen/products/ig-content/test-cases/huy-bangkok-grey-v1/inputs/style-source/002-style-reference.jpeg",
-      "/Volumes/BIWIN/CODES/opinionated-imagen/products/ig-content/test-cases/huy-bangkok-grey-v1/inputs/style-source/003-style-reference.jpeg"
+      "/Volumes/BIWIN/CODES/opinionated-imagen/products/nail-content/test-cases/huy-bangkok-grey-v1/inputs/style-source/001-style-reference.jpeg",
+      "/Volumes/BIWIN/CODES/opinionated-imagen/products/nail-content/test-cases/huy-bangkok-grey-v1/inputs/style-source/002-style-reference.jpeg",
+      "/Volumes/BIWIN/CODES/opinionated-imagen/products/nail-content/test-cases/huy-bangkok-grey-v1/inputs/style-source/003-style-reference.jpeg"
     ]
   },
   "completedUploads": [

@@ -35,7 +35,7 @@ describe("POST /api/packs", () => {
           },
         }),
       } as unknown as Ai,
-      PRODUCT_ID: "ig-content",
+      PRODUCT_ID: "nail-content",
     };
 
     const res = await app.request(
@@ -45,8 +45,8 @@ describe("POST /api/packs", () => {
         headers: { "Content-Type": "application/json", Cookie: AUTH_COOKIE },
         body: JSON.stringify({
           sessionToken: "test-session-uuid",
-          presetId: "cafe-aesthetic",
-          prompt: "make it feel like Bangkok at night",
+          presetId: "client-result-closeup",
+          prompt: "make this chrome set feel clean and premium",
           variantMode: "style-forward-editorial",
         }),
       },
@@ -92,7 +92,7 @@ describe("POST /api/packs", () => {
         headers: { "Content-Type": "application/json", Cookie: AUTH_COOKIE },
         body: JSON.stringify({
           sessionToken: "test-session-uuid",
-          presetId: "cafe-aesthetic",
+          presetId: "client-result-closeup",
         }),
       },
       env,
@@ -113,7 +113,7 @@ function createPackEnv(options: { sessionStatus?: string } = {}) {
         run: async () => Response.json({ data: [{ b64_json: PNG_BASE64 }] }),
       }),
     } as unknown as Ai,
-    PRODUCT_ID: "ig-content",
+    PRODUCT_ID: "nail-content",
   };
 }
 

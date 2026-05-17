@@ -118,7 +118,7 @@ packsApp.post("/", requireAuth, async (c) => {
     }
 
     const workspace = getProductWorkspace(
-      c.env.PRODUCT_ID ?? c.env.NICHE ?? "ig-content",
+      c.env.PRODUCT_ID ?? c.env.NICHE ?? "nail-content",
     );
     const preset = workspace.scenes.find((scene) => scene.id === body.presetId);
     if (!preset) {

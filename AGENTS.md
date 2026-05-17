@@ -101,7 +101,7 @@ pnpm build
 
 ```bash
 # Each product deploys independently
-pnpm deploy:ig        # PRODUCT_ID=ig-content pnpm build && wrangler deploy
+pnpm deploy:nail      # PRODUCT_ID=nail-content pnpm build && wrangler deploy
 pnpm deploy:headshots # (future)
 pnpm deploy:dating    # (future)
 
@@ -186,7 +186,7 @@ The target: a friend took this photo with their phone.
 ## Resources
 
 - `core/functions/AGENTS.md` — Backend API, D1 schema, binding types, R2 setup
-- `products/ig-content/` — Reference implementation for the first product
+- `products/nail-content/` — Reference implementation for the first product
 
 ## Prompting References
 

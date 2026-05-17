@@ -1,10 +1,10 @@
 {
-  "id": "ig-content",
-  "name": "IG Content",
+  "id": "nail-content",
+  "name": "Nail Content Ekip",
   "sourceLocale": "en",
-  "gatewayId": "opinionated-imagen-ig",
+  "gatewayId": "opinionated-imagen-nail",
   "deploy": {
-    "script": "deploy:ig"
+    "script": "deploy:nail"
   },
   "pricing": {
     "singleDropUsd": 10,

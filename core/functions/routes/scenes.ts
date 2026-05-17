@@ -21,7 +21,7 @@ const scenesApp = new Hono<{ Bindings: Bindings }>();
  * not from D1 (the D1 scenes table exists for schema completeness only).
  */
 scenesApp.get('/', async (c) => {
-  const productId = c.env.PRODUCT_ID ?? c.env.NICHE ?? 'ig-content';
+  const productId = c.env.PRODUCT_ID ?? c.env.NICHE ?? 'nail-content';
 
   try {
     const workspace = getProductWorkspace(productId);

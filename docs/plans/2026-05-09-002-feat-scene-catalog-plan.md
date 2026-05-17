@@ -24,7 +24,7 @@ The current Create page (`src/pages/create.astro`) shows a basic two-mode UI: Pr
 
 - R1. D1 `scenes` table with JSON metadata
 - R2. `GET /api/scenes` returns scenes with name, description, compositionPlan, tags
-- R3. Scene data loaded from `products/ig-content/scenes/*.json` through the Product Workspace compiler
+- R3. Scene data loaded from `products/nail-content/scenes/*.json` through the Product Workspace compiler
 - R4. Create page renders responsive card grid (2–4 columns) with Scene name + 2 tags
 - R5. Clicking a Scene selects it and renders The Brief below/as overlay as a centered paragraph
 - R6. Brief shows: baseScene text, composition plan summary, expected shot count
@@ -37,7 +37,7 @@ The current Create page (`src/pages/create.astro`) shows a basic two-mode UI: Pr
 
 - **No inline editing.** The Brief is read-only. The inline editing flow is deferred to the One Turn implementation.
 - **No custom/freeform prompt mode.** The previous "Custom" toggle is removed. The catalog is the only entry point for this slice.
-- **No D1 seeding at runtime.** The D1 `scenes` table schema exists for completeness. The API serves scene data from the generated Product Workspace artifact — the JSON files in `products/ig-content/scenes/` are the canonical source. D1-based reads and seeding from JSON are deferred until scenes become dynamic.
+- **No D1 seeding at runtime.** The D1 `scenes` table schema exists for completeness. The API serves scene data from the generated Product Workspace artifact — the JSON files in `products/nail-content/scenes/` are the canonical source. D1-based reads and seeding from JSON are deferred until scenes become dynamic.
 - **No image/thumbnail for Scene cards.** Cards show name + tags only. Scene imagery is a future visual enhancement.
 - **No test infrastructure.** The project has no test runner configured. Unit/integration tests for this slice are deferred. Manual verification with curl and browser is the validation path.
 
@@ -65,7 +65,7 @@ The current Create page (`src/pages/create.astro`) shows a basic two-mode UI: Pr
 
 ## Key Technical Decisions
 
-- **Product Workspace compiler as Worker data source, JSON files as canonical source**: Scene definitions live in `products/ig-content/scenes/*.json`. `core/tools/product-workspace.mjs` validates and compiles them into `core/functions/generated/products.ts`, which the Worker imports. This solves the Cloudflare Worker bundling constraint without hand-maintained mirrors.
+- **Product Workspace compiler as Worker data source, JSON files as canonical source**: Scene definitions live in `products/nail-content/scenes/*.json`. `core/tools/product-workspace.mjs` validates and compiles them into `core/functions/generated/products.ts`, which the Worker imports. This solves the Cloudflare Worker bundling constraint without hand-maintained mirrors.
 - **D1 `scenes` table exists for schema completeness**: Created via migration. Not read by the API yet. Seeding D1 from JSON/source data is deferred to when scenes become dynamic.
 - **Scene data schema extends the existing preset shape**: Adds `tags` array, `shotCount` (derived from compositionPlan ratios sum), and keeps `baseScene`, `compositionPlan` from the existing schema.
 - **`/api/presets` removed, `/api/scenes` replaces it**: The old hardcoded endpoint returns one dummy preset. No backward compatibility needed — no production data depends on it.
@@ -97,9 +97,9 @@ The current Create page (`src/pages/create.astro`) shows a basic two-mode UI: Pr
 **Dependencies:** None
 
 **Files:**
-- Create: `products/ig-content/scenes/cafe-aesthetic.json` (updated schema with tags)
-- Create: `products/ig-content/scenes/coffee-shop-meeting.json` (second Scene — ensures the catalog isn't a single-item list)
-- Create: `products/ig-content/scenes/golden-hour-portrait.json` (third Scene — demonstrates diversity)
+- Create: `products/nail-content/scenes/client-result-closeup.json` (updated schema with tags)
+- Create: `products/nail-content/scenes/salon-station-carousel.json` (second Scene — ensures the catalog isn't a single-item list)
+- Create: `products/nail-content/scenes/before-after-set.json` (third Scene — demonstrates diversity)
 - Generate: `core/functions/generated/products.ts` — typed Product Workspace artifact imported by the Worker
 - Create: `functions/migrations/0002_create_scenes.sql` — D1 scenes table
 - Create: `functions/routes/scenes.ts` — GET /api/scenes handler
@@ -139,7 +139,7 @@ The current Create page (`src/pages/create.astro`) shows a basic two-mode UI: Pr
 **Patterns to follow:**
 - Route module pattern from `functions/routes/profile.ts` — Hono sub-app with typed Bindings
 - Response shape from existing `diagnostics.ts` — structured errors
-- JSON file shape from existing `cafe-aesthetic.json` — extend with `tags`
+- JSON file shape from existing `client-result-closeup.json` — extend with `tags`
 
 **Test scenarios:**
 - **Happy path:** GET `/api/scenes` returns 200 with an array of scenes, each having: id, name, description, tags, baseScene, compositionPlan, shotCount
@@ -238,7 +238,7 @@ CreateApp
 
 ## Documentation / Operational Notes
 
-- **Adding new Scenes**: Add or edit the JSON file in `products/ig-content/scenes/`, then run `pnpm product:validate ig-content` and `pnpm product:compile ig-content`.
+- **Adding new Scenes**: Add or edit the JSON file in `products/nail-content/scenes/`, then run `pnpm product:validate nail-content` and `pnpm product:compile nail-content`.
 - **D1 scenes table**: Created for schema completeness. No active reads yet. Can be seeded in a future migration when dynamic scenes are needed.
 - **`/api/scenes` replaces `/api/presets`**: The old endpoint is removed. Any code still referencing `/api/presets` will 404.
 
